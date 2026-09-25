@@ -82,6 +82,7 @@ export const COMPONENTS = [
       AUTH0_DOMAIN: { kind: 'var', source: 'issuer_host', note: 'legacy Bearer-token path only' },
       BFF_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'BFF_INTERNAL_KEY' },
       SOURCE_URL: { kind: 'var', source: 'optional', note: 'AGPL "Broncode" link; unset = upstream repos' },
+      ARCANUM_VERSION: { kind: 'var', source: 'optional', note: 'the installed release, shown in the console footer; set by the installer' },
       COOKIE_DOMAIN: { kind: 'var', source: 'optional' },
       ALLOWED_ORIGINS: { kind: 'var', source: 'optional' },
       GIT_COMMIT_SHA: { kind: 'var', source: 'optional', note: 'the installer can set it from the manifest' },
