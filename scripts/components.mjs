@@ -85,6 +85,8 @@ export const COMPONENTS = [
       COOKIE_DOMAIN: { kind: 'var', source: 'optional' },
       ALLOWED_ORIGINS: { kind: 'var', source: 'optional' },
       GIT_COMMIT_SHA: { kind: 'var', source: 'optional', note: 'the installer can set it from the manifest' },
+      // Set by the installer (with an ARCANUM_INSTALLER_SERVICE binding) when it moves behind Arcanum.
+      INSTALLER_INTERNAL_KEY: { kind: 'secret', source: 'optional', note: 'installer behind /installer' },
       BANCONTACT_LOCAL_URL: { kind: 'var', source: 'dev' },
       DEVICEHUB_LOCAL_URL: { kind: 'var', source: 'dev' },
       CONSOLE_LOCAL_URL: { kind: 'var', source: 'dev' },
