@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import blake3 from 'blake3-wasm';
 import { COMPONENTS } from '../scripts/components.mjs';
-import { assertVersion, bundledPackages, checkEnvContract, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices } from '../scripts/lib.mjs';
+import { assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices } from '../scripts/lib.mjs';
 
 const backend = COMPONENTS.find((c) => c.name === 'arcanum-backend');
 const bff = COMPONENTS.find((c) => c.name === 'arcanum-bff');
@@ -103,4 +103,40 @@ test('assertVersion accepts semver only', () => {
   assert.doesNotThrow(() => assertVersion('0.1.0'));
   assert.doesNotThrow(() => assertVersion('1.2.3-beta.1'));
   for (const bad of ['v0.1.0', '1.2', '', undefined]) assert.throws(() => assertVersion(bad));
+});
+
+test('chunkAssets keeps chunks under the limit, stores duplicates once, gives a big file its own chunk', () => {
+  const chunks = chunkAssets(
+    [
+      { hash: 'a', base64: 'x'.repeat(60) },
+      { hash: 'b', base64: 'x'.repeat(30) },
+      { hash: 'a', base64: 'x'.repeat(60) },
+      { hash: 'c', base64: 'x'.repeat(30) },
+      { hash: 'big', base64: 'x'.repeat(500) },
+      { hash: 'd', base64: 'x'.repeat(10) },
+    ],
+    100
+  );
+  assert.deepEqual(chunks.map((c) => Object.keys(c)), [['a', 'b'], ['c'], ['big'], ['d']]);
+});
+
+test('contentTypeFor maps common web extensions', () => {
+  assert.equal(contentTypeFor('/kassa.html'), 'text/html');
+  assert.equal(contentTypeFor('/assets/app-x.js'), 'text/javascript');
+  assert.equal(contentTypeFor('/fonts/geist.WOFF2'), 'font/woff2');
+  assert.equal(contentTypeFor('/weird.bin'), 'application/octet-stream');
+});
+
+test('addToIndex keeps newest first, replaces a re-added version, and tracks latest non-pre-release', async () => {
+  const { addToIndex } = await import('../scripts/lib.mjs');
+  const m = (version, day) => ({ version, format_version: 1, released_at: `2026-10-${day}T00:00:00.000Z` });
+  let index = addToIndex(null, m('0.1.1', '01'), true);
+  assert.equal(index.latest, null);
+  index = addToIndex(index, m('0.2.0', '05'), false);
+  index = addToIndex(index, m('0.3.0-beta.1', '09'), true);
+  assert.deepEqual(index.releases.map((r) => r.version), ['0.3.0-beta.1', '0.2.0', '0.1.1']);
+  assert.equal(index.latest, '0.2.0');
+  assert.equal(index.releases[1].manifest_url, 'https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.2.0/manifest.json');
+  index = addToIndex(index, m('0.2.0', '05'), false);
+  assert.equal(index.releases.length, 3);
 });

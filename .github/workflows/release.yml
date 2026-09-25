@@ -74,3 +74,12 @@ jobs:
             --title "Arcanum ${{ inputs.version }}" \
             --notes-file dist/NOTES.md \
             ${{ inputs.prerelease && '--prerelease' || '--latest' }}
+
+      - name: Add it to releases.json (read by the installer)
+        run: |
+          node scripts/update-index.mjs --version "${{ inputs.version }}" --prerelease "${{ inputs.prerelease }}" --manifest dist/manifest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git commit -m "releases.json: add ${{ inputs.version }}"
+          git push

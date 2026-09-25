@@ -5,7 +5,8 @@
 // Output (one file per concern, all JSON except the texts, so the installer
 // Worker can read them without unpacking archives):
 //   arcanum-<worker>.json          descriptor (bindings, DO migrations, env contract) + bundled modules
-//   arcanum-frontends-assets.json  static assets, pre-hashed exactly like wrangler does
+//   arcanum-frontends-assets.json  asset manifest (path → hash, size, content type, chunk), hashed like wrangler
+//   arcanum-frontends-assets-NN.json  the asset contents (hash → base64), ~250 KB per chunk
 //   database.json                  schema.sql + migrations per D1 database
 //   LICENSE, THIRD_PARTY_NOTICES.txt, NOTES.md
 //   manifest.json                  version, source commit per component, sha256 of every file
@@ -14,7 +15,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { COMPONENTS, GITHUB_ORG } from './components.mjs';
-import { assertVersion, bundledPackages, checkEnvContract, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices, sha256 } from './lib.mjs';
+import { ASSET_CHUNK_BYTES, assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices, sha256 } from './lib.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith('--') ? [...acc, [a.slice(2), all[i + 1]]] : acc), []));
 assertVersion(args.version);
@@ -25,7 +26,9 @@ mkdirSync(out, { recursive: true });
 
 const run = (cmd, argv, cwd) => execFileSync(cmd, argv, { cwd, stdio: ['ignore', 'pipe', 'inherit'], env: { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: 'true' } }).toString();
 
-const manifest = { format: 'arcanum-release', version: args.version, released_at: new Date().toISOString(), license: 'AGPL-3.0-or-later', components: {}, files: {} };
+// format_version: the layout of a release (bumped when files change shape;
+// the installer refuses layouts it doesn't know). 1 = chunked assets.
+const manifest = { format: 'arcanum-release', format_version: 1, version: args.version, released_at: new Date().toISOString(), license: 'AGPL-3.0-or-later', components: {}, files: {} };
 const notices = [];
 const databases = [];
 
@@ -74,14 +77,25 @@ for (const component of COMPONENTS) {
   writeFileSync(join(out, `${component.name}.json`), JSON.stringify({ ...descriptor, modules }));
 
   if (config.assets?.directory) {
+    // A manifest without content + content in chunks of ~250 KB: the
+    // installer runs on the Workers Free plan (~10 ms CPU, 50 subrequests
+    // per request), so it must never parse all assets in one request.
     const dir = join(repo, config.assets.directory);
     const files = {};
-    for (const f of filesUnder(dir)) {
+    const contents = [];
+    for (const f of filesUnder(dir).sort()) {
       const path = '/' + relative(dir, f).split('\\').join('/');
       if (path === '/.assetsignore') continue;
       const { hash, base64 } = hashAsset(path, readFileSync(f));
-      files[path] = { hash, size: statSync(f).size, base64 };
+      files[path] = { hash, size: statSync(f).size, contentType: contentTypeFor(path) };
+      contents.push({ hash, base64 });
     }
+    const chunks = chunkAssets(contents, ASSET_CHUNK_BYTES);
+    chunks.forEach((chunk, i) => {
+      const name = `${component.name}-assets-${String(i + 1).padStart(2, '0')}.json`;
+      writeFileSync(join(out, name), JSON.stringify(chunk));
+      for (const hash of Object.keys(chunk)) for (const f of Object.values(files)) if (f.hash === hash) f.chunk = name;
+    });
     writeFileSync(join(out, `${component.name}-assets.json`), JSON.stringify({ config: descriptor.assets.config, files }));
     // Frontend dependencies ship inside the assets, not the Worker bundle.
     const paths = run('npm', ['ls', '--omit=dev', '--all', '--parseable'], repo).split('\n').filter(Boolean).slice(1);

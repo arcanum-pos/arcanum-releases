@@ -124,3 +124,54 @@ export function sha256(buffer) {
 export function assertVersion(version) {
   if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version || '')) throw new Error(`version must look like 1.2.3 or 1.2.3-beta.1, got "${version}"`);
 }
+
+export const ASSET_CHUNK_BYTES = 250_000;
+
+// Groups { hash, base64 } into chunks of at most `limit` base64 bytes (a
+// larger single file gets a chunk of its own). Duplicate hashes are stored once.
+export function chunkAssets(contents, limit) {
+  const chunks = [];
+  let current = {};
+  let size = 0;
+  for (const { hash, base64 } of contents) {
+    if (chunks.some((c) => hash in c) || hash in current) continue;
+    if (size > 0 && size + base64.length > limit) {
+      chunks.push(current);
+      current = {};
+      size = 0;
+    }
+    current[hash] = base64;
+    size += base64.length;
+  }
+  if (size > 0) chunks.push(current);
+  return chunks;
+}
+
+const CONTENT_TYPES = {
+  html: 'text/html', js: 'text/javascript', mjs: 'text/javascript', css: 'text/css', json: 'application/json', svg: 'image/svg+xml',
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', ico: 'image/x-icon', txt: 'text/plain',
+  woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', map: 'application/json', webmanifest: 'application/manifest+json',
+  wasm: 'application/wasm', xml: 'application/xml', pdf: 'application/pdf',
+};
+
+export function contentTypeFor(path) {
+  return CONTENT_TYPES[extname(path).substring(1).toLowerCase()] || 'application/octet-stream';
+}
+
+const REPO_URL = 'https://github.com/arcanum-pos/arcanum-releases';
+
+// releases.json: every published release, newest first; `latest` = newest non-pre-release.
+export function addToIndex(index, manifest, prerelease) {
+  const releases = (index?.releases || []).filter((r) => r.version !== manifest.version);
+  releases.unshift({
+    version: manifest.version,
+    tag: `v${manifest.version}`,
+    prerelease,
+    released_at: manifest.released_at,
+    format_version: manifest.format_version,
+    manifest_url: `${REPO_URL}/releases/download/v${manifest.version}/manifest.json`,
+    notes_url: `${REPO_URL}/releases/tag/v${manifest.version}`,
+  });
+  releases.sort((a, b) => (a.released_at < b.released_at ? 1 : -1));
+  return { format: 'arcanum-releases-index', latest: releases.find((r) => !r.prerelease)?.version ?? null, releases };
+}
