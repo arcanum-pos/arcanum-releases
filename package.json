@@ -1,0 +1,14 @@
+{
+  "name": "arcanum-releases",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "build": "node scripts/build-release.mjs"
+  },
+  "dependencies": {
+    "blake3-wasm": "2.1.5",
+    "jsonc-parser": "^3.3.1"
+  }
+}
