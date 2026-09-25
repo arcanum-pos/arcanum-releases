@@ -56,6 +56,10 @@ export const COMPONENTS = [
       DEFAULT_IDP_CLIENT_ID: { kind: 'secret', source: 'install', question: 'login.clientId' },
       DEFAULT_IDP_CLIENT_SECRET: { kind: 'secret', source: 'install', question: 'login.clientSecret' },
       DEFAULT_IDP_CONNECTION_NAME: { kind: 'secret', source: 'optional', note: 'Auth0 only' },
+      // Google: no offline_access, and a separate Web-application client for browser login.
+      DEFAULT_IDP_SCOPES: { kind: 'secret', source: 'optional', note: 'e.g. "openid profile email" for Google' },
+      DEFAULT_IDP_AUTH_CODE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
+      DEFAULT_IDP_AUTH_CODE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
       INSTANCE_ADMIN_EMAILS: { kind: 'secret', source: 'install', question: 'admins' },
       DEFAULT_SMTP_HOST: { kind: 'secret', source: 'optional', note: 'mail is configured per org in the portal' },
       DEFAULT_SMTP_PORT: { kind: 'secret', source: 'optional' },
