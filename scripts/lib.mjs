@@ -117,6 +117,17 @@ export function renderNotices(packages) {
   );
 }
 
+// The release page's text (NOTES.md): the hand-written notes for this
+// version (notes/<version>.md — what changed, for the people running it),
+// if there are any, above the list of source commits it was built from.
+export function renderNotes(version, components, notes = null) {
+  const builtFrom = Object.entries(components)
+    .map(([name, c]) => `- [${name}](${c.source}) \`${c.commit.slice(0, 7)}\``)
+    .join('\n');
+  const body = notes && notes.trim() ? `${notes.trim()}\n\n## Built from\n\n` : 'Built from:\n\n';
+  return `Arcanum ${version}\n\n${body}${builtFrom}\n\nLicense: AGPL-3.0-or-later. Deploy with arcanum-installer; see manifest.json for checksums.\n`;
+}
+
 export function sha256(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
 }

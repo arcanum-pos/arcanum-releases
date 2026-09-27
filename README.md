@@ -27,7 +27,12 @@ component repo has a setting that isn't classified there.
 
 ## Making a release
 
-Actions → **Release** → Run workflow (version, component ref, pre-release),
+First write what's new in `notes/<version>.md` — for the people running an
+installation: what they get, what changes for them, anything to do when
+updating. The build puts it on the release page above the source commits
+(a release without one only lists the commits).
+
+Then Actions → **Release** → Run workflow (version, component ref, pre-release),
 or `gh workflow run release.yml -R arcanum-pos/arcanum-releases -f version=0.1.0`.
 It runs the component test suites first — a failing test means no release.
 

@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { COMPONENTS, GITHUB_ORG } from './components.mjs';
-import { ASSET_CHUNK_BYTES, assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices, sha256 } from './lib.mjs';
+import { ASSET_CHUNK_BYTES, assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotes, renderNotices, sha256 } from './lib.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith('--') ? [...acc, [a.slice(2), all[i + 1]]] : acc), []));
 assertVersion(args.version);
@@ -118,12 +118,12 @@ for (const component of COMPONENTS) {
 writeFileSync(join(out, 'database.json'), JSON.stringify({ databases }));
 writeFileSync(join(out, 'THIRD_PARTY_NOTICES.txt'), renderNotices(notices));
 writeFileSync(join(out, 'LICENSE'), readFileSync(join(work, 'arcanum-backend', 'LICENSE')));
-writeFileSync(
-  join(out, 'NOTES.md'),
-  `Arcanum ${args.version}\n\nBuilt from:\n\n${Object.entries(manifest.components)
-    .map(([name, c]) => `- [${name}](${c.source}) \`${c.commit.slice(0, 7)}\``)
-    .join('\n')}\n\nLicense: AGPL-3.0-or-later. Deploy with arcanum-installer; see manifest.json for checksums.\n`
-);
+// What's new, written by hand before the release (notes/<version>.md in this
+// repo); a release without one just lists its source commits.
+const notesFile = new URL(`../notes/${args.version}.md`, import.meta.url);
+const notes = existsSync(notesFile) ? readFileSync(notesFile, 'utf8') : null;
+if (!notes) console.warn(`no notes/${args.version}.md — the release page only lists the source commits`);
+writeFileSync(join(out, 'NOTES.md'), renderNotes(args.version, manifest.components, notes));
 
 for (const file of readdirSync(out).sort()) {
   const content = readFileSync(join(out, file));

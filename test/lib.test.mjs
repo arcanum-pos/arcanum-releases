@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import blake3 from 'blake3-wasm';
 import { COMPONENTS } from '../scripts/components.mjs';
-import { assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotices } from '../scripts/lib.mjs';
+import { assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotes, renderNotices } from '../scripts/lib.mjs';
 
 const backend = COMPONENTS.find((c) => c.name === 'arcanum-backend');
 const bff = COMPONENTS.find((c) => c.name === 'arcanum-bff');
@@ -139,4 +139,14 @@ test('addToIndex keeps newest first, replaces a re-added version, and tracks lat
   assert.equal(index.releases[1].manifest_url, 'https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.2.0/manifest.json');
   index = addToIndex(index, m('0.2.0', '05'), false);
   assert.equal(index.releases.length, 3);
+});
+
+test('renderNotes: the hand-written notes above the source commits, or just the commits', () => {
+  const components = { 'arcanum-backend': { source: 'https://github.com/arcanum-pos/arcanum-backend/tree/abc1234def', commit: 'abc1234def' } };
+  const plain = renderNotes('0.1.9', components)
+  assert.match(plain, /^Arcanum 0\.1\.9\n\nBuilt from:\n\n- \[arcanum-backend\]\(https:\/\/github\.com\/arcanum-pos\/arcanum-backend\/tree\/abc1234def\) `abc1234`\n/);
+  assert.equal(renderNotes('0.1.9', components, '  \n'), plain);
+  const withNotes = renderNotes('0.1.10', components, '## New\n\n- Live sync\n');
+  assert.match(withNotes, /^Arcanum 0\.1\.10\n\n## New\n\n- Live sync\n\n## Built from\n\n- \[arcanum-backend\]/);
+  assert.match(withNotes, /License: AGPL-3\.0-or-later/);
 });
