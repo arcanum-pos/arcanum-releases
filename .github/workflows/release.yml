@@ -61,6 +61,7 @@ jobs:
           npm test
           (cd work/arcanum-backend && npm test)
           (cd work/arcanum-frontends && npm test)
+          (cd work/arcanum-devicehub && npm test)
           for repo in arcanum-bff arcanum-devicehub arcanum-mailer; do (cd "work/$repo" && npm run typecheck); done
 
       - name: Build the release
