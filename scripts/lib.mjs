@@ -54,6 +54,9 @@ export function describeWorker(component, config) {
     '$schema', 'name', 'main', 'compatibility_date', 'compatibility_flags', 'workers_dev', 'dev', 'vars', 'routes', 'route',
     'd1_databases', 'kv_namespaces', 'durable_objects', 'migrations', 'services', 'ratelimits', 'assets', 'version_metadata',
     'observability', 'upload_source_maps', 'triggers', 'preview_urls',
+    // Module rules only shape the bundle (which files become which module
+    // type) — the bundle's modules carry their type, see moduleType.
+    'rules',
   ]);
   const unsupported = Object.keys(config).filter((k) => !known.has(k));
   if (unsupported.length) throw new Error(`${component.name}: unsupported wrangler.jsonc key(s) ${unsupported.join(', ')}`);
@@ -76,6 +79,39 @@ export function describeWorker(component, config) {
     assets: config.assets ? { config: omit(config.assets, ['directory', 'binding']) } : null,
     env,
   };
+}
+
+// A bundled module's type, as the installer uploads it: `esm` and `text`
+// as UTF-8, `compiled_wasm` and `data` (a wrangler "Data" rule — e.g. the
+// installer's logo and fonts, imported as ArrayBuffer) as base64.
+export function moduleType(name, rules = []) {
+  if (name.endsWith('.wasm')) return 'compiled_wasm';
+  if (name.endsWith('.js') || name.endsWith('.mjs')) return 'esm';
+  const rule = rules.find((r) => (r.globs || []).some((g) => globMatches(g, name)));
+  return rule?.type === 'Data' ? 'data' : 'text';
+}
+
+// The globs wrangler rules use here ("**/*.png"): ** = any directories, * = any name part.
+function globMatches(glob, name) {
+  const pattern = glob
+    .split('**/')
+    .map((part) => part.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*'))
+    .join('(?:.*/)?');
+  return new RegExp(`^${pattern}$`).test(name);
+}
+
+// A module of the bundle as stored in a release file.
+export function bundledModule(name, content, rules = []) {
+  const type = moduleType(name, rules);
+  const binary = type === 'compiled_wasm' || type === 'data';
+  return { name, type, ...(binary ? { base64: Buffer.from(content).toString('base64') } : { content: Buffer.from(content).toString('utf8') }) };
+}
+
+// manifest.installer — the installer as a release artifact, next to (not
+// one of) the five components: what the bootstrapper uploads onto a new
+// account, and what an installer uploads over itself before an update.
+export function installerEntry(file, commit, content) {
+  return { file, commit, sha256: sha256(content) };
 }
 
 function omit(obj, keys) {

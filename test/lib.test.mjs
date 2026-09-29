@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import blake3 from 'blake3-wasm';
-import { COMPONENTS } from '../scripts/components.mjs';
-import { assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotes, renderNotices } from '../scripts/lib.mjs';
+import { COMPONENTS, INSTALLER } from '../scripts/components.mjs';
+import { assertVersion, bundledModule, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, installerEntry, moduleType, readWranglerConfig, renderNotes, renderNotices, sha256 } from '../scripts/lib.mjs';
 
 const backend = COMPONENTS.find((c) => c.name === 'arcanum-backend');
 const bff = COMPONENTS.find((c) => c.name === 'arcanum-bff');
@@ -166,4 +166,66 @@ test('renderNotes: the hand-written notes above the source commits, or just the 
   const withNotes = renderNotes('0.1.10', components, '## New\n\n- Live sync\n');
   assert.match(withNotes, /^Arcanum 0\.1\.10\n\n## New\n\n- Live sync\n\n## Built from\n\n- \[arcanum-backend\]/);
   assert.match(withNotes, /License: AGPL-3\.0-or-later/);
+});
+
+// The installer's wrangler.jsonc as it is (arcanum-installer): a KV for its
+// state, one var, and its logo and fonts bundled as Data modules.
+const INSTALLER_CONFIG = `{
+  "name": "arcanum-installer",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-11",
+  "workers_dev": true,
+  "kv_namespaces": [{ "binding": "INSTALLER_STATE" }],
+  "vars": { "RELEASES_INDEX_URL": "https://raw.githubusercontent.com/arcanum-pos/arcanum-releases/main/releases.json" },
+  "rules": [{ "type": "Data", "globs": ["**/*.png", "**/*.woff2"], "fallthrough": true }],
+  "observability": { "enabled": true }
+}`;
+
+test('the installer is a release artifact, not one of the components it installs', () => {
+  assert.ok(!COMPONENTS.some((c) => c.name === INSTALLER.name));
+  assert.equal(INSTALLER.name, 'arcanum-installer');
+});
+
+test("describeWorker describes the installer: its KV, the index URL, and the secrets its uploaders handle — never the dev-only API base", () => {
+  const config = readWranglerConfig(INSTALLER_CONFIG);
+  assert.doesNotThrow(() => checkEnvContract(INSTALLER, config, ['INSTALLER_PASSWORD']), 'the Deploy button\'s password is classified');
+  const d = describeWorker(INSTALLER, config);
+  assert.deepEqual(d.bindings, [{ type: 'kv_namespace', name: 'INSTALLER_STATE', namespace: 'arcanum-installer:INSTALLER_STATE' }]);
+  assert.equal(d.env.RELEASES_INDEX_URL.value, 'https://raw.githubusercontent.com/arcanum-pos/arcanum-releases/main/releases.json');
+  assert.equal(d.env.INSTALLER_RELEASE.source, 'release_version');
+  assert.deepEqual(
+    Object.entries(d.env).filter(([, s]) => s.kind === 'secret').map(([n, s]) => [n, s.source]),
+    [['INSTALLER_PASSWORD', 'keep'], ['INSTALLER_STATE_KEY', 'bootstrap'], ['BOOTSTRAP_CONFIG', 'bootstrap']]
+  );
+  assert.ok(!('CLOUDFLARE_API_BASE' in d.env));
+  assert.equal(d.public_entry, false, 'not the installation\'s public entry (that is the bff)');
+  assert.throws(() => checkEnvContract(INSTALLER, config, ['SOMETHING_NEW']), /SOMETHING_NEW/);
+});
+
+test('moduleType: js is esm, wasm compiled, a "Data" rule\'s files data, anything else text', () => {
+  const rules = readWranglerConfig(INSTALLER_CONFIG).rules;
+  assert.equal(moduleType('index.js', rules), 'esm');
+  assert.equal(moduleType('chunk.mjs'), 'esm');
+  assert.equal(moduleType('yoga.wasm'), 'compiled_wasm');
+  assert.equal(moduleType('893a103e-kabouter.png', rules), 'data');
+  assert.equal(moduleType('fonts/f49f83ef-geist-latin-wght.woff2', rules), 'data');
+  assert.equal(moduleType('kabouter.png'), 'text', 'no rule, no data');
+  assert.equal(moduleType('notes.txt', rules), 'text');
+  assert.equal(moduleType('kabouter.png.txt', rules), 'text', 'the whole name must match');
+});
+
+test('bundledModule keeps binary modules byte-exact as base64 and text as UTF-8', () => {
+  const rules = [{ type: 'Data', globs: ['**/*.png'] }];
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0xff, 0x00]);
+  const m = bundledModule('abc-kabouter.png', png, rules);
+  assert.deepEqual(m, { name: 'abc-kabouter.png', type: 'data', base64: png.toString('base64') });
+  assert.deepEqual(Buffer.from(m.base64, 'base64'), png);
+  assert.deepEqual(bundledModule('index.js', Buffer.from('export default {};'), rules), { name: 'index.js', type: 'esm', content: 'export default {};' });
+  assert.equal(bundledModule('x.wasm', Buffer.from([0, 97, 115, 109])).base64, 'AGFzbQ==');
+});
+
+test('installerEntry: manifest.installer names the file, its source commit, and its sha256', () => {
+  const content = Buffer.from('{"name":"arcanum-installer"}');
+  assert.deepEqual(installerEntry('arcanum-installer.json', 'abc123', content), { file: 'arcanum-installer.json', commit: 'abc123', sha256: sha256(content) });
+  assert.match(installerEntry('f', 'c', content).sha256, /^[0-9a-f]{64}$/);
 });

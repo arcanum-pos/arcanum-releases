@@ -1,5 +1,5 @@
-# Builds and publishes an Arcanum release: bundles of all five Workers,
-# the frontend assets, database schemas + migrations, license and
+# Builds and publishes an Arcanum release: bundles of all five Workers and
+# of the installer (listed apart, as manifest.installer), the frontend assets, database schemas + migrations, license and
 # third-party notices, and a manifest with checksums and the exact source
 # commit of every component. The installer deploys from these.
 #
@@ -45,9 +45,9 @@ jobs:
         with:
           node-version: 22
 
-      - name: Check out the components (public repos)
+      - name: Check out the components and the installer (public repos)
         run: |
-          for repo in arcanum-mailer arcanum-devicehub arcanum-frontends arcanum-backend arcanum-bff; do
+          for repo in arcanum-mailer arcanum-devicehub arcanum-frontends arcanum-backend arcanum-bff arcanum-installer; do
             git clone --quiet --depth 1 --branch "${{ inputs.ref }}" "https://github.com/arcanum-pos/$repo.git" "work/$repo"
           done
 
@@ -62,7 +62,8 @@ jobs:
           (cd work/arcanum-backend && npm test)
           (cd work/arcanum-frontends && npm test)
           (cd work/arcanum-devicehub && npm test)
-          for repo in arcanum-bff arcanum-devicehub arcanum-mailer; do (cd "work/$repo" && npm run typecheck); done
+          (cd work/arcanum-installer && npm test)
+          for repo in arcanum-bff arcanum-devicehub arcanum-mailer arcanum-installer; do (cd "work/$repo" && npm run typecheck); done
 
       - name: Build the release
         run: node scripts/build-release.mjs --version "${{ inputs.version }}" --work work --out dist

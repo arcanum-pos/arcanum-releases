@@ -1,10 +1,12 @@
 // Builds an Arcanum release from checked-out component repos:
 //
-//   node scripts/build-release.mjs --version 0.1.0 --work <dir with the 5 repos> --out dist
+//   node scripts/build-release.mjs --version 0.1.0 --work <dir with the 5 repos + arcanum-installer> --out dist
 //
 // Output (one file per concern, all JSON except the texts, so the installer
 // Worker can read them without unpacking archives):
 //   arcanum-<worker>.json          descriptor (bindings, DO migrations, env contract) + bundled modules
+//   arcanum-installer.json         the installer itself, same shape (not one of the components;
+//                                  listed as manifest.installer)
 //   arcanum-frontends-assets.json  asset manifest (path → hash, size, content type, chunk), hashed like wrangler
 //   arcanum-frontends-assets-NN.json  the asset contents (hash → base64), ~250 KB per chunk
 //   database.json                  schema.sql + migrations per D1 database
@@ -14,8 +16,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { COMPONENTS, GITHUB_ORG } from './components.mjs';
-import { ASSET_CHUNK_BYTES, assertVersion, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, readWranglerConfig, renderNotes, renderNotices, sha256 } from './lib.mjs';
+import { COMPONENTS, GITHUB_ORG, INSTALLER } from './components.mjs';
+import { ASSET_CHUNK_BYTES, assertVersion, bundledModule, bundledPackages, checkEnvContract, chunkAssets, contentTypeFor, describeWorker, devVarsKeys, hashAsset, installerEntry, readWranglerConfig, renderNotes, renderNotices, sha256 } from './lib.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith('--') ? [...acc, [a.slice(2), all[i + 1]]] : acc), []));
 assertVersion(args.version);
@@ -42,14 +44,15 @@ function filesUnder(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? filesUnder(join(dir, e.name)) : [join(dir, e.name)]));
 }
 
-for (const component of COMPONENTS) {
+// One Worker: its env contract checked, described, built and bundled
+// exactly as `wrangler deploy` would upload it — written as <name>.json.
+function buildWorker(component) {
   const repo = join(work, component.name);
   const config = readWranglerConfig(readFileSync(join(repo, 'wrangler.jsonc'), 'utf8'));
   const devKeys = existsSync(join(repo, '.dev.vars.example')) ? devVarsKeys(readFileSync(join(repo, '.dev.vars.example'), 'utf8')) : [];
   checkEnvContract(component, config, devKeys);
   const descriptor = describeWorker(component, config);
   const commit = run('git', ['rev-parse', 'HEAD'], repo).trim();
-  manifest.components[component.name] = { repo: `https://github.com/${GITHUB_ORG}/${component.name}`, commit, source: `https://github.com/${GITHUB_ORG}/${component.name}/tree/${commit}` };
 
   if (component.build) run(component.build[0], component.build.slice(1), repo);
 
@@ -61,12 +64,7 @@ for (const component of COMPONENTS) {
   const modules = filesUnder(bundleDir)
     // Not modules: source maps, the metafile, and the README.md wrangler writes into --outdir.
     .filter((f) => !f.endsWith('.map') && !f.endsWith('bundle-meta.json') && relative(bundleDir, f) !== 'README.md')
-    .map((f) => {
-      const name = relative(bundleDir, f);
-      const type = name.endsWith('.wasm') ? 'compiled_wasm' : name.endsWith('.js') || name.endsWith('.mjs') ? 'esm' : 'text';
-      const content = readFileSync(f);
-      return { name, type, ...(type === 'compiled_wasm' ? { base64: content.toString('base64') } : { content: content.toString('utf8') }) };
-    });
+    .map((f) => bundledModule(relative(bundleDir, f), readFileSync(f), config.rules));
   descriptor.main_module = relative(bundleDir, join(bundleDir, entry[0].split('/').pop()));
   if (!modules.some((m) => m.name === descriptor.main_module)) throw new Error(`${component.name}: main module ${descriptor.main_module} not in the bundle`);
   for (const root of bundledPackages(metafile)) {
@@ -74,7 +72,15 @@ for (const component of COMPONENTS) {
     if (existsSync(join(dir, 'package.json'))) notices.push(readPackage(dir));
   }
   rmSync(bundleDir, { recursive: true, force: true });
-  writeFileSync(join(out, `${component.name}.json`), JSON.stringify({ ...descriptor, modules }));
+  const file = `${component.name}.json`;
+  writeFileSync(join(out, file), JSON.stringify({ ...descriptor, modules }));
+  console.log(`built ${component.name} @ ${commit.slice(0, 7)}`);
+  return { repo, config, descriptor, commit, file };
+}
+
+for (const component of COMPONENTS) {
+  const { repo, config, descriptor, commit } = buildWorker(component);
+  manifest.components[component.name] = { repo: `https://github.com/${GITHUB_ORG}/${component.name}`, commit, source: `https://github.com/${GITHUB_ORG}/${component.name}/tree/${commit}` };
 
   if (config.assets?.directory) {
     // A manifest without content + content in chunks of ~250 KB: the
@@ -112,8 +118,11 @@ for (const component of COMPONENTS) {
       : [];
     databases.push({ name: db.name, component: component.name, schema: readFileSync(join(repo, db.schema), 'utf8'), migrations, tracked: !!db.migrations });
   }
-  console.log(`built ${component.name} @ ${commit.slice(0, 7)}`);
 }
+
+// The installer: built like a component, listed apart (manifest.installer).
+const installer = buildWorker(INSTALLER);
+manifest.installer = installerEntry(installer.file, installer.commit, readFileSync(join(out, installer.file)));
 
 writeFileSync(join(out, 'database.json'), JSON.stringify({ databases }));
 writeFileSync(join(out, 'THIRD_PARTY_NOTICES.txt'), renderNotices(notices));
@@ -123,7 +132,8 @@ writeFileSync(join(out, 'LICENSE'), readFileSync(join(work, 'arcanum-backend', '
 const notesFile = new URL(`../notes/${args.version}.md`, import.meta.url);
 const notes = existsSync(notesFile) ? readFileSync(notesFile, 'utf8') : null;
 if (!notes) console.warn(`no notes/${args.version}.md — the release page only lists the source commits`);
-writeFileSync(join(out, 'NOTES.md'), renderNotes(args.version, manifest.components, notes));
+const builtFrom = { ...manifest.components, [INSTALLER.name]: { commit: installer.commit, source: `https://github.com/${GITHUB_ORG}/${INSTALLER.name}/tree/${installer.commit}` } };
+writeFileSync(join(out, 'NOTES.md'), renderNotes(args.version, builtFrom, notes));
 
 for (const file of readdirSync(out).sort()) {
   const content = readFileSync(join(out, file));

@@ -103,3 +103,26 @@ export const COMPONENTS = [
     },
   },
 ];
+
+// The installer itself — part of every release, but NOT one of the
+// components above: it installs them. Uploaded onto a new account by the
+// bootstrapper (start.kaboutersoft.be), and by an installer over itself
+// before it updates Arcanum (HOSTING_PLAN.md, decision 4). Its own sources:
+//   bootstrap        a secret the bootstrapper sets (the handoff; the state key)
+//   keep             an existing secret of the running installer, re-sent unchanged
+//   release_version  the version of the release it comes from
+export const INSTALLER = {
+  name: 'arcanum-installer',
+  env: {
+    RELEASES_INDEX_URL: { kind: 'var', source: 'fixed' },
+    INSTALLER_RELEASE: { kind: 'var', source: 'release_version' },
+    // Installers made with the Deploy button: the setup page's password.
+    INSTALLER_PASSWORD: { kind: 'secret', source: 'keep', note: 'Deploy-button installers only' },
+    // Bootstrapped installers: the root of the key sealing its state — set
+    // once, must never change (it seals ENCRYPTION_KEY).
+    INSTALLER_STATE_KEY: { kind: 'secret', source: 'bootstrap', note: 'set once by the bootstrapper, never changed' },
+    // The handoff from the bootstrapper (see arcanum-installer's README).
+    BOOTSTRAP_CONFIG: { kind: 'secret', source: 'bootstrap', note: 'the bootstrapper hands over token, login client and owner' },
+    CLOUDFLARE_API_BASE: { kind: 'var', source: 'dev' },
+  },
+};
