@@ -38,6 +38,23 @@ test('describeWorker keeps logical bindings and drops this installation\'s ids, 
   assert.ok(!('DEVICEHUB_LOCAL_URL' in d.env), 'dev-only settings are left out');
 });
 
+test("a 'fixed' value of its own wins over wrangler.jsonc: own instances are 'single', whatever the demo tenant's config says", () => {
+  const config = readWranglerConfig(BACKEND_CONFIG);
+  const demoTenant = { ...config, vars: { ...config.vars, ORG_CREATION: 'internal', DEMO_LIFETIME_HOURS: '4', DEMO_MAX_LIVE: '20', DEMO_INSTALL_URL: 'https://start.kaboutersoft.be' } };
+  assert.doesNotThrow(() => checkEnvContract(backend, demoTenant, ['BOOTSTRAP_API_KEY', 'ORG_CREATION']));
+  assert.doesNotThrow(() => checkEnvContract(backend, config, []), 'no ORG_CREATION in wrangler.jsonc is fine too');
+  for (const c of [config, demoTenant]) {
+    const d = describeWorker(backend, c);
+    assert.deepEqual(d.env.ORG_CREATION, { kind: 'var', source: 'fixed', value: 'single' });
+    // Demo-instance settings stay unset on an own instance.
+    for (const name of ['DEMO_LIFETIME_HOURS', 'DEMO_MAX_LIVE', 'DEMO_INSTALL_URL', 'BOOTSTRAP_API_KEY']) {
+      assert.equal(d.env[name].source, 'optional', name);
+      assert.ok(!('value' in d.env[name]), name);
+    }
+    assert.ok(!JSON.stringify(d).includes('kaboutersoft'));
+  }
+});
+
 test('describeWorker refuses config it does not understand', () => {
   assert.throws(() => describeWorker(backend, { ...readWranglerConfig(BACKEND_CONFIG), r2_buckets: [] }), /unsupported wrangler.jsonc key/);
   assert.throws(() => describeWorker(backend, { ...readWranglerConfig(BACKEND_CONFIG), triggers: { crons: ['*/5 * * * *'] } }), /cron/);

@@ -30,7 +30,7 @@ export function checkEnvContract(component, config, devKeys) {
     throw new Error(`${component.name}: unclassified setting(s) ${[...new Set(unknown)].join(', ')} — add them to scripts/components.mjs`);
   }
   for (const [name, spec] of Object.entries(component.env)) {
-    if (spec.source === 'fixed' && !(config.vars && name in config.vars)) {
+    if (spec.source === 'fixed' && !('value' in spec) && !(config.vars && name in config.vars)) {
       throw new Error(`${component.name}: ${name} is 'fixed' but has no value in wrangler.jsonc vars`);
     }
   }
@@ -39,7 +39,7 @@ export function checkEnvContract(component, config, devKeys) {
 // What the installer needs to upload this Worker on a fresh account: the
 // bindings by logical name (never this installation's ids, routes or
 // hostnames), Durable Object migrations, and the env contract with only the
-// 'fixed' values filled in.
+// 'fixed' values filled in (a component's own `value` wins over wrangler.jsonc's).
 export function describeWorker(component, config) {
   const bindings = [];
   for (const d of config.d1_databases || []) bindings.push({ type: 'd1', name: d.binding, database: d.database_name });
@@ -62,7 +62,7 @@ export function describeWorker(component, config) {
   const env = Object.fromEntries(
     Object.entries(component.env)
       .filter(([, spec]) => spec.source !== 'dev')
-      .map(([name, spec]) => [name, spec.source === 'fixed' ? { ...spec, value: config.vars[name] } : spec])
+      .map(([name, spec]) => [name, spec.source === 'fixed' ? { ...spec, value: 'value' in spec ? spec.value : config.vars[name] } : spec])
   );
 
   return {

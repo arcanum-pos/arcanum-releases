@@ -6,7 +6,9 @@
 // installations.
 //
 // Env value sources:
-//   fixed            same value on every installation (taken from wrangler.jsonc)
+//   fixed            same value on every installation (taken from wrangler.jsonc —
+//                    or from `value` when wrangler.jsonc holds the shared
+//                    demo tenant's own value, which no own instance may get)
 //   public_url       https://<the installation's address>
 //   public_host      the installation's address, host only
 //   zone_id          the Cloudflare zone of a custom-domain address (optional)
@@ -61,6 +63,13 @@ export const COMPONENTS = [
       DEFAULT_IDP_AUTH_CODE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
       DEFAULT_IDP_AUTH_CODE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
       INSTANCE_ADMIN_EMAILS: { kind: 'secret', source: 'install', question: 'admins' },
+      // An own instance: its first org only (wrangler.jsonc says "internal" — the demo instance).
+      ORG_CREATION: { kind: 'var', source: 'fixed', value: 'single' },
+      // The demo instance's demo orgs — never on an own instance.
+      DEMO_LIFETIME_HOURS: { kind: 'var', source: 'optional', note: 'demo instance only' },
+      DEMO_MAX_LIVE: { kind: 'var', source: 'optional', note: 'demo instance only' },
+      DEMO_INSTALL_URL: { kind: 'var', source: 'optional', note: 'demo instance only' },
+      BOOTSTRAP_API_KEY: { kind: 'secret', source: 'optional', note: 'demo instance only (the bootstrapper)' },
       DEFAULT_SMTP_HOST: { kind: 'secret', source: 'optional', note: 'mail is configured per org in the portal' },
       DEFAULT_SMTP_PORT: { kind: 'secret', source: 'optional' },
       DEFAULT_SMTP_USER: { kind: 'secret', source: 'optional' },
