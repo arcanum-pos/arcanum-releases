@@ -11,7 +11,6 @@
 //                    demo tenant's own value, which no own instance may get)
 //   public_url       https://<the installation's address>
 //   public_host      the installation's address, host only
-//   zone_id          the Cloudflare zone of a custom-domain address (optional)
 //   issuer_host      host of the login provider's issuer URL
 //   generate         random secret, created once per installation (`format`)
 //   shared           same generated secret on several Workers (`key`)
@@ -48,7 +47,6 @@ export const COMPONENTS = [
     env: {
       AUTH_SCHEME: { kind: 'var', source: 'fixed' },
       PUBLIC_BASE_URL: { kind: 'var', source: 'public_url' },
-      CLOUDFLARE_ZONE_ID: { kind: 'var', source: 'optional', note: 'custom domains per org' },
       // base64 of 32 bytes — never hex (see CLAUDE.md); must never change after install.
       ENCRYPTION_KEY: { kind: 'secret', source: 'generate', format: 'base64-32' },
       INTERNAL_API_KEY: { kind: 'secret', source: 'shared', key: 'INTERNAL_API_KEY' },
@@ -76,7 +74,6 @@ export const COMPONENTS = [
       DEFAULT_SMTP_PASS: { kind: 'secret', source: 'optional' },
       DEFAULT_SMTP_FROM_ADDRESS: { kind: 'secret', source: 'optional' },
       DEFAULT_SMTP_FROM_NAME: { kind: 'secret', source: 'optional' },
-      CLOUDFLARE_API_TOKEN: { kind: 'secret', source: 'optional', note: 'custom domains per org' },
       DEVICEHUB_LOCAL_URL: { kind: 'var', source: 'dev' },
       MAILER_LOCAL_URL: { kind: 'var', source: 'dev' },
     },

@@ -13,7 +13,7 @@ const BACKEND_CONFIG = `{
   "main": "src/index.ts",
   "compatibility_date": "2026-09-11",
   "workers_dev": false,
-  "vars": { "AUTH_SCHEME": "Bearer", "PUBLIC_BASE_URL": "https://arcanum.kaboutersoft.be", "CLOUDFLARE_ZONE_ID": "f689" },
+  "vars": { "AUTH_SCHEME": "Bearer", "PUBLIC_BASE_URL": "https://arcanum.kaboutersoft.be" },
   "services": [{ "binding": "ARCANUM_MAILER_SERVICE", "service": "arcanum-mailer" }],
   "d1_databases": [{ "binding": "DB", "database_name": "arcanum-backend", "database_id": "684e3e7c", "migrations_dir": "migrations" }],
   "durable_objects": { "bindings": [{ "name": "CHARGE_POLLER", "class_name": "ChargePoller" }] },
@@ -31,7 +31,7 @@ test('describeWorker keeps logical bindings and drops this installation\'s ids, 
   ]);
   assert.deepEqual(d.durable_object_migrations, [{ tag: 'v1', new_sqlite_classes: ['ChargePoller'] }]);
   const text = JSON.stringify(d);
-  for (const leaked of ['684e3e7c', 'kaboutersoft', 'f689']) assert.ok(!text.includes(leaked), `leaked ${leaked}`);
+  for (const leaked of ['684e3e7c', 'kaboutersoft']) assert.ok(!text.includes(leaked), `leaked ${leaked}`);
   assert.equal(d.env.AUTH_SCHEME.value, 'Bearer');
   assert.equal(d.env.PUBLIC_BASE_URL.source, 'public_url');
   assert.equal(d.env.ENCRYPTION_KEY.format, 'base64-32');
@@ -65,6 +65,8 @@ test('checkEnvContract fails on an unclassified var or .dev.vars key', () => {
   assert.doesNotThrow(() => checkEnvContract(backend, config, ['ENCRYPTION_KEY', 'MAILER_LOCAL_URL']));
   assert.throws(() => checkEnvContract(backend, config, ['BRAND_NEW_SECRET']), /BRAND_NEW_SECRET/);
   assert.throws(() => checkEnvContract(backend, { ...config, vars: { ...config.vars, NEW_VAR: 'x' } }, []), /NEW_VAR/);
+  // Removed with the per-org custom domain (hosting plan phase 6): no longer a setting.
+  assert.throws(() => checkEnvContract(backend, { ...config, vars: { ...config.vars, CLOUDFLARE_ZONE_ID: 'x' } }, ['CLOUDFLARE_API_TOKEN']), /CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN/);
   assert.throws(() => checkEnvContract(bff, { vars: {} }, []), /SESSION_TTL is 'fixed'/);
 });
 
