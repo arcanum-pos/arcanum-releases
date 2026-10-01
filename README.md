@@ -27,9 +27,8 @@ the installer, derived from the address, or optional. A build fails when a
 component repo has a setting that isn't classified there.
 The installer has its own contract there (`INSTALLER`): its index URL
 (fixed), the release it comes from (`release_version`), and the secrets
-whoever uploads it handles — `INSTALLER_PASSWORD` (`keep`: re-sent
-unchanged), `INSTALLER_STATE_KEY` and `BOOTSTRAP_CONFIG` (`bootstrap`: set
-by the bootstrapper). Module types in a Worker file: `esm` and `text`
+whoever uploads it handles — `INSTALLER_STATE_KEY` and `BOOTSTRAP_CONFIG`
+(`bootstrap`: set by the bootstrapper). Module types in a Worker file: `esm` and `text`
 (UTF-8 `content`), `compiled_wasm` and `data` (`base64`).
 
 ## Making a release

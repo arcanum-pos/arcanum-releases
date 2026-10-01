@@ -113,8 +113,6 @@ export const INSTALLER = {
   env: {
     RELEASES_INDEX_URL: { kind: 'var', source: 'fixed' },
     INSTALLER_RELEASE: { kind: 'var', source: 'release_version' },
-    // Installers made with the Deploy button: the setup page's password.
-    INSTALLER_PASSWORD: { kind: 'secret', source: 'keep', note: 'Deploy-button installers only' },
     // Bootstrapped installers: the root of the key sealing its state — set
     // once, must never change (it seals ENCRYPTION_KEY).
     INSTALLER_STATE_KEY: { kind: 'secret', source: 'bootstrap', note: 'set once by the bootstrapper, never changed' },

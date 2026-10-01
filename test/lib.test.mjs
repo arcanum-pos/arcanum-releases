@@ -190,14 +190,14 @@ test('the installer is a release artifact, not one of the components it installs
 
 test("describeWorker describes the installer: its KV, the index URL, and the secrets its uploaders handle — never the dev-only API base", () => {
   const config = readWranglerConfig(INSTALLER_CONFIG);
-  assert.doesNotThrow(() => checkEnvContract(INSTALLER, config, ['INSTALLER_PASSWORD']), 'the Deploy button\'s password is classified');
+  assert.doesNotThrow(() => checkEnvContract(INSTALLER, config, ['INSTALLER_STATE_KEY', 'BOOTSTRAP_CONFIG']), 'the bootstrapper\'s secrets are classified');
   const d = describeWorker(INSTALLER, config);
   assert.deepEqual(d.bindings, [{ type: 'kv_namespace', name: 'INSTALLER_STATE', namespace: 'arcanum-installer:INSTALLER_STATE' }]);
   assert.equal(d.env.RELEASES_INDEX_URL.value, 'https://raw.githubusercontent.com/arcanum-pos/arcanum-releases/main/releases.json');
   assert.equal(d.env.INSTALLER_RELEASE.source, 'release_version');
   assert.deepEqual(
     Object.entries(d.env).filter(([, s]) => s.kind === 'secret').map(([n, s]) => [n, s.source]),
-    [['INSTALLER_PASSWORD', 'keep'], ['INSTALLER_STATE_KEY', 'bootstrap'], ['BOOTSTRAP_CONFIG', 'bootstrap']]
+    [['INSTALLER_STATE_KEY', 'bootstrap'], ['BOOTSTRAP_CONFIG', 'bootstrap']]
   );
   assert.ok(!('CLOUDFLARE_API_BASE' in d.env));
   assert.equal(d.public_entry, false, 'not the installation\'s public entry (that is the bff)');
