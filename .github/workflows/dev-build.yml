@@ -1,0 +1,109 @@
+name: Development build
+
+# A development build from main of every component, for installations on
+# the development channel (chosen in the bootstrapper, for the platform's
+# own installations only). Every 15 minutes it looks whether a component's
+# main moved since the last build; only then it tests, builds and publishes
+# — a GitHub pre-release v<x.y.z>-dev.<n>, listed in releases-dev.json
+# (never in releases.json). The newest 20 stay; older ones are deleted.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even when nothing changed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  REPOS: arcanum-mailer arcanum-devicehub arcanum-frontends arcanum-backend arcanum-bff arcanum-installer
+
+jobs:
+  dev-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: What main is now, and whether that was built already
+        id: changes
+        run: |
+          echo '{' > built-from.json
+          first=1
+          for repo in $REPOS; do
+            sha=$(git ls-remote "https://github.com/arcanum-pos/$repo.git" refs/heads/main | cut -f1)
+            [ $first = 1 ] || echo ',' >> built-from.json
+            printf '"%s": "%s"' "$repo" "$sha" >> built-from.json
+            first=0
+          done
+          echo '}' >> built-from.json
+          last=$( [ -f releases-dev.json ] && node -e "console.log(JSON.stringify(require('./releases-dev.json').built_from ?? null))" || echo null )
+          now=$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('built-from.json','utf8'))))")
+          if [ "$last" = "$now" ] && [ "${{ inputs.force }}" != "true" ]; then echo "build=false" >> "$GITHUB_OUTPUT"; echo "Nothing new since the last development build."; else echo "build=true" >> "$GITHUB_OUTPUT"; fi
+          echo "version=$(node scripts/next-dev-version.mjs)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v5
+        if: steps.changes.outputs.build == 'true'
+        with:
+          node-version: 22
+
+      - name: Check out the components and the installer at those commits
+        if: steps.changes.outputs.build == 'true'
+        run: |
+          for repo in $REPOS; do
+            sha=$(node -e "console.log(require('./built-from.json')['$repo'])")
+            git clone --quiet "https://github.com/arcanum-pos/$repo.git" "work/$repo"
+            git -C "work/$repo" checkout --quiet "$sha"
+          done
+
+      - name: Install
+        if: steps.changes.outputs.build == 'true'
+        run: |
+          npm ci
+          for repo in work/*; do (cd "$repo" && npm ci --no-audit --no-fund); done
+
+      - name: Test (a failing test means no build)
+        if: steps.changes.outputs.build == 'true'
+        run: |
+          npm test
+          (cd work/arcanum-backend && npm test)
+          (cd work/arcanum-frontends && npm test)
+          (cd work/arcanum-devicehub && npm test)
+          (cd work/arcanum-installer && npm test)
+          for repo in arcanum-bff arcanum-devicehub arcanum-mailer arcanum-installer; do (cd "work/$repo" && npm run typecheck); done
+
+      - name: Build
+        if: steps.changes.outputs.build == 'true'
+        run: node scripts/build-release.mjs --version "${{ steps.changes.outputs.version }}" --work work --out dist
+
+      - name: Publish
+        if: steps.changes.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.changes.outputs.version }}" dist/* \
+            --title "Arcanum ${{ steps.changes.outputs.version }} (development build)" \
+            --notes-file dist/NOTES.md --prerelease --latest=false
+
+      - name: Add it to releases-dev.json; drop the oldest
+        if: steps.changes.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git pull --quiet --rebase
+          node scripts/update-index.mjs --index releases-dev.json --keep 20 --built-from built-from.json --removed removed.txt \
+            --version "${{ steps.changes.outputs.version }}" --prerelease true --manifest dist/manifest.json
+          while read -r old; do [ -n "$old" ] && gh release delete "v$old" --yes --cleanup-tag || true; done < removed.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add releases-dev.json
+          git commit -m "releases-dev.json: add ${{ steps.changes.outputs.version }}"
+          git push

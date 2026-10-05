@@ -231,3 +231,26 @@ test('installerEntry: manifest.installer names the file, its source commit, and 
   assert.deepEqual(installerEntry('arcanum-installer.json', 'abc123', content), { file: 'arcanum-installer.json', commit: 'abc123', sha256: sha256(content) });
   assert.match(installerEntry('f', 'c', content).sha256, /^[0-9a-f]{64}$/);
 });
+
+test('compareVersions: numeric parts, a release above its pre-releases, dev.N counted numerically', async () => {
+  const { compareVersions } = await import('../scripts/lib.mjs');
+  const sorted = ['0.1.25', '0.1.25-dev.10', '0.1.24', '0.1.25-dev.2', '0.1.3', '0.1.25-dev.1'].sort(compareVersions);
+  assert.deepEqual(sorted, ['0.1.3', '0.1.24', '0.1.25-dev.1', '0.1.25-dev.2', '0.1.25-dev.10', '0.1.25']);
+});
+
+test('nextDevVersion: the patch after the highest release, counting dev builds up', async () => {
+  const { nextDevVersion } = await import('../scripts/lib.mjs');
+  assert.equal(nextDevVersion({ releases: [{ version: '0.1.24' }, { version: '0.1.9' }] }, null), '0.1.25-dev.1');
+  assert.equal(nextDevVersion({ releases: [{ version: '0.1.24' }] }, { releases: [{ version: '0.1.25-dev.1' }, { version: '0.1.25-dev.7' }, { version: '0.1.24-dev.3' }] }), '0.1.25-dev.8');
+  // After 0.1.25 is released, the count starts again for 0.1.26.
+  assert.equal(nextDevVersion({ releases: [{ version: '0.1.25' }] }, { releases: [{ version: '0.1.25-dev.7' }] }), '0.1.26-dev.1');
+});
+
+test('pruneIndex keeps the newest N and says which went', async () => {
+  const { pruneIndex } = await import('../scripts/lib.mjs');
+  const index = { format: 'arcanum-releases-index', latest: null, releases: ['0.1.25-dev.1', '0.1.25-dev.3', '0.1.25-dev.2'].map((version) => ({ version })) };
+  const { index: kept, removed } = pruneIndex(index, 2);
+  assert.deepEqual(kept.releases.map((r) => r.version), ['0.1.25-dev.3', '0.1.25-dev.2']);
+  assert.deepEqual(removed, ['0.1.25-dev.1']);
+});
+

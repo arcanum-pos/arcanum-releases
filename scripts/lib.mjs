@@ -208,6 +208,45 @@ export function contentTypeFor(path) {
 const REPO_URL = 'https://github.com/arcanum-pos/arcanum-releases';
 
 // releases.json: every published release, newest first; `latest` = newest non-pre-release.
+// "0.1.24" < "0.1.25-dev.1" < "0.1.25-dev.2" < "0.1.25": numeric parts,
+// then a release above its own pre-releases, then the pre-release parts
+// (numbers numerically). The installer compares the same way.
+export function compareVersions(a, b) {
+  const [ca, pa] = [a.split('-')[0], a.split('-').slice(1).join('-')];
+  const [cb, pb] = [b.split('-')[0], b.split('-').slice(1).join('-')];
+  const x = ca.split('.').map(Number);
+  const y = cb.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) < (y[i] || 0) ? -1 : 1;
+  if (!pa || !pb) return pa === pb ? 0 : pa ? -1 : 1;
+  const xs = pa.split('.');
+  const ys = pb.split('.');
+  for (let i = 0; i < Math.max(xs.length, ys.length); i++) {
+    if (xs[i] === undefined) return -1;
+    if (ys[i] === undefined) return 1;
+    const [nx, ny] = [/^\d+$/.test(xs[i]), /^\d+$/.test(ys[i])];
+    if (xs[i] !== ys[i]) return nx && ny ? (Number(xs[i]) < Number(ys[i]) ? -1 : 1) : xs[i] < ys[i] ? -1 : 1;
+  }
+  return 0;
+}
+
+// The next development build: the patch after the highest release, then
+// -dev.N counting up — "0.1.24" released → "0.1.25-dev.1", "0.1.25-dev.2" …
+export function nextDevVersion(stableIndex, devIndex) {
+  const highest = (stableIndex?.releases || []).map((r) => r.version).sort(compareVersions).pop() || '0.0.0';
+  const [maj, min, patch] = highest.split('-')[0].split('.').map(Number);
+  const base = `${maj}.${min}.${patch + 1}`;
+  const n = Math.max(0, ...(devIndex?.releases || []).map((r) => r.version.match(new RegExp(`^${base.replace(/\./g, '\\.')}-dev\\.(\\d+)$`))?.[1]).filter(Boolean).map(Number));
+  return `${base}-dev.${n + 1}`;
+}
+
+// Development builds: only the newest `keep` stay listed (the workflow
+// deletes the GitHub releases of the ones dropped). `builtFrom`: the
+// component commits of the newest build — nothing new, no build.
+export function pruneIndex(index, keep) {
+  const releases = [...index.releases].sort((a, b) => compareVersions(b.version, a.version));
+  return { index: { ...index, releases: releases.slice(0, keep) }, removed: releases.slice(keep).map((r) => r.version) };
+}
+
 export function addToIndex(index, manifest, prerelease) {
   const releases = (index?.releases || []).filter((r) => r.version !== manifest.version);
   releases.unshift({
