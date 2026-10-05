@@ -86,6 +86,15 @@ export const COMPONENTS = [
       SESSION_TTL: { kind: 'var', source: 'fixed' },
       FRONTEND_URL: { kind: 'var', source: 'public_url' },
       BFF_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'BFF_INTERNAL_KEY' },
+      // The instance's login provider, the bff's own (the same answers as the
+      // backend's): it no longer asks the backend for the client secret.
+      DEFAULT_IDP_ISSUER_URL: { kind: 'secret', source: 'install', question: 'login.issuer' },
+      DEFAULT_IDP_CLIENT_ID: { kind: 'secret', source: 'install', question: 'login.clientId' },
+      DEFAULT_IDP_CLIENT_SECRET: { kind: 'secret', source: 'install', question: 'login.clientSecret' },
+      DEFAULT_IDP_CONNECTION_NAME: { kind: 'secret', source: 'optional', note: 'Auth0 only' },
+      DEFAULT_IDP_SCOPES: { kind: 'secret', source: 'optional', note: 'e.g. "openid profile email" for Google' },
+      DEFAULT_IDP_AUTH_CODE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
+      DEFAULT_IDP_AUTH_CODE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
       SOURCE_URL: { kind: 'var', source: 'optional', note: 'AGPL "Broncode" link; unset = upstream repos' },
       ARCANUM_VERSION: { kind: 'var', source: 'optional', note: 'the installed release, shown in the console footer; set by the installer' },
       COOKIE_DOMAIN: { kind: 'var', source: 'optional' },
