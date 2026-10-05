@@ -20,8 +20,10 @@ on:
 permissions:
   contents: write
 
+# Its own group: in a shared one, a waiting development build would cancel
+# a waiting release (GitHub keeps only the newest pending run per group).
 concurrency:
-  group: release
+  group: dev-build
   cancel-in-progress: false
 
 env:
