@@ -85,7 +85,6 @@ export const COMPONENTS = [
     env: {
       SESSION_TTL: { kind: 'var', source: 'fixed' },
       FRONTEND_URL: { kind: 'var', source: 'public_url' },
-      AUTH0_DOMAIN: { kind: 'var', source: 'issuer_host', note: 'legacy Bearer-token path only' },
       BFF_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'BFF_INTERNAL_KEY' },
       SOURCE_URL: { kind: 'var', source: 'optional', note: 'AGPL "Broncode" link; unset = upstream repos' },
       ARCANUM_VERSION: { kind: 'var', source: 'optional', note: 'the installed release, shown in the console footer; set by the installer' },
