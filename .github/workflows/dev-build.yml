@@ -50,7 +50,6 @@ jobs:
           last=$( [ -f releases-dev.json ] && node -e "console.log(JSON.stringify(require('./releases-dev.json').built_from ?? null))" || echo null )
           now=$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('built-from.json','utf8'))))")
           if [ "$last" = "$now" ] && [ "${{ inputs.force }}" != "true" ]; then echo "build=false" >> "$GITHUB_OUTPUT"; echo "Nothing new since the last development build."; else echo "build=true" >> "$GITHUB_OUTPUT"; fi
-          echo "version=$(node scripts/next-dev-version.mjs)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v5
         if: steps.changes.outputs.build == 'true'
@@ -72,6 +71,16 @@ jobs:
           npm ci
           for repo in work/*; do (cd "$repo" && npm ci --no-audit --no-fund); done
 
+      # After npm ci: the script imports lib.mjs, which needs its dependencies.
+      - name: The version of this build
+        id: version
+        if: steps.changes.outputs.build == 'true'
+        run: |
+          v=$(node scripts/next-dev-version.mjs)
+          [ -n "$v" ] || { echo "::error::no version"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Building $v"
+
       - name: Test (a failing test means no build)
         if: steps.changes.outputs.build == 'true'
         run: |
@@ -84,15 +93,15 @@ jobs:
 
       - name: Build
         if: steps.changes.outputs.build == 'true'
-        run: node scripts/build-release.mjs --version "${{ steps.changes.outputs.version }}" --work work --out dist
+        run: node scripts/build-release.mjs --version "${{ steps.version.outputs.version }}" --work work --out dist
 
       - name: Publish
         if: steps.changes.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ steps.changes.outputs.version }}" dist/* \
-            --title "Arcanum ${{ steps.changes.outputs.version }} (development build)" \
+          gh release create "v${{ steps.version.outputs.version }}" dist/* \
+            --title "Arcanum ${{ steps.version.outputs.version }} (development build)" \
             --notes-file dist/NOTES.md --prerelease --latest=false
 
       - name: Add it to releases-dev.json; drop the oldest
@@ -102,10 +111,10 @@ jobs:
         run: |
           git pull --quiet --rebase
           node scripts/update-index.mjs --index releases-dev.json --keep 20 --built-from built-from.json --removed removed.txt \
-            --version "${{ steps.changes.outputs.version }}" --prerelease true --manifest dist/manifest.json
+            --version "${{ steps.version.outputs.version }}" --prerelease true --manifest dist/manifest.json
           while read -r old; do [ -n "$old" ] && gh release delete "v$old" --yes --cleanup-tag || true; done < removed.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add releases-dev.json
-          git commit -m "releases-dev.json: add ${{ steps.changes.outputs.version }}"
+          git commit -m "releases-dev.json: add ${{ steps.version.outputs.version }}"
           git push
