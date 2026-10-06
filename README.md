@@ -12,7 +12,7 @@ commit of each component repo it was built from.
 |---|---|
 | `arcanum-<worker>.json` (×5) | the Worker's bundled code (exactly what `wrangler deploy` uploads) + a descriptor: bindings by logical name, Durable Object migrations, compatibility date, and its env contract |
 | `arcanum-frontends-assets.json` + `-assets-NN.json` | the asset manifest (path → hash, size, content type, chunk; hashed with wrangler's own algorithm) and the contents in ~250 KB chunks — small enough for an installer on the Workers Free plan |
-| `arcanum-installer.json` | the installer itself, same shape as a Worker file — **not** one of the five components (`manifest.components` doesn't list it): `manifest.installer` = `{ file, commit, sha256 }`. Its logo and fonts are `data` modules (base64). The bootstrapper (start.kaboutersoft.be) uploads it onto a new account; an installer uploads it over itself before updating Arcanum to this release |
+| `arcanum-installer.json` | the installer itself, same shape as a Worker file — **not** one of the five components (`manifest.components` doesn't list it): `manifest.installer` = `{ file, commit, sha256 }`. Its logo and fonts are `data` modules (base64). The bootstrapper (arcanum.kaboutersoft.be) uploads it onto a new account; an installer uploads it over itself before updating Arcanum to this release |
 | `database.json` | `schema.sql` + migrations per D1 database |
 | `LICENSE`, `THIRD_PARTY_NOTICES.txt` | AGPL-3.0-or-later, and the licenses of bundled dependencies |
 | `manifest.json` | version, source commit per component (and of the installer), size + sha256 of every file |

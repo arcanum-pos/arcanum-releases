@@ -111,7 +111,7 @@ export const COMPONENTS = [
 
 // The installer itself — part of every release, but NOT one of the
 // components above: it installs them. Uploaded onto a new account by the
-// bootstrapper (start.kaboutersoft.be), and by an installer over itself
+// bootstrapper (arcanum.kaboutersoft.be), and by an installer over itself
 // before it updates Arcanum (HOSTING_PLAN.md, decision 4). Its own sources:
 //   bootstrap        a secret the bootstrapper sets (the handoff; the state key)
 //   keep             an existing secret of the running installer, re-sent unchanged
