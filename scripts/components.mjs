@@ -52,14 +52,9 @@ export const COMPONENTS = [
       INTERNAL_API_KEY: { kind: 'secret', source: 'shared', key: 'INTERNAL_API_KEY' },
       BFF_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'BFF_INTERNAL_KEY' },
       MAILER_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'MAILER_INTERNAL_KEY' },
+      // Only the issuer (invites, demo orgs — MAIL.md decision 6): the client
+      // id and secret belong to the bff alone; the installer removes them here.
       DEFAULT_IDP_ISSUER_URL: { kind: 'secret', source: 'install', question: 'login.issuer' },
-      DEFAULT_IDP_CLIENT_ID: { kind: 'secret', source: 'install', question: 'login.clientId' },
-      DEFAULT_IDP_CLIENT_SECRET: { kind: 'secret', source: 'install', question: 'login.clientSecret' },
-      DEFAULT_IDP_CONNECTION_NAME: { kind: 'secret', source: 'optional', note: 'Auth0 only' },
-      // Google: no offline_access, and a separate Web-application client for browser login.
-      DEFAULT_IDP_SCOPES: { kind: 'secret', source: 'optional', note: 'e.g. "openid profile email" for Google' },
-      DEFAULT_IDP_AUTH_CODE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
-      DEFAULT_IDP_AUTH_CODE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
       INSTANCE_ADMIN_EMAILS: { kind: 'secret', source: 'install', question: 'admins' },
       // An own instance: its first org only (wrangler.jsonc says "internal" — the demo instance).
       ORG_CREATION: { kind: 'var', source: 'fixed', value: 'single' },
