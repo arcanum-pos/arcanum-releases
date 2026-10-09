@@ -49,10 +49,16 @@ export function describeWorker(component, config) {
   for (const r of config.ratelimits || []) bindings.push({ type: 'ratelimit', name: r.name, simple: r.simple });
   if (config.assets?.binding) bindings.push({ type: 'assets', name: config.assets.binding });
   if (config.version_metadata?.binding) bindings.push({ type: 'version_metadata', name: config.version_metadata.binding });
+  // Cloudflare Email Service (arcanum-mailer, MAIL.md phase 5): unrestricted
+  // only — no destination/sender allow-lists to carry over.
+  for (const e of config.send_email || []) {
+    if (e.destination_address || e.allowed_destination_addresses || e.allowed_sender_addresses) throw new Error(`${component.name}: send_email restrictions aren't supported by the installer`);
+    bindings.push({ type: 'send_email', name: e.name });
+  }
 
   const known = new Set([
     '$schema', 'name', 'main', 'compatibility_date', 'compatibility_flags', 'workers_dev', 'dev', 'vars', 'routes', 'route',
-    'd1_databases', 'kv_namespaces', 'durable_objects', 'migrations', 'services', 'ratelimits', 'assets', 'version_metadata',
+    'd1_databases', 'kv_namespaces', 'durable_objects', 'migrations', 'services', 'ratelimits', 'assets', 'version_metadata', 'send_email',
     'observability', 'upload_source_maps', 'triggers', 'preview_urls',
     // Module rules only shape the bundle (which files become which module
     // type) — the bundle's modules carry their type, see moduleType.

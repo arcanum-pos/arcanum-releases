@@ -55,6 +55,13 @@ test("a 'fixed' value of its own wins over wrangler.jsonc: own instances are 'si
   }
 });
 
+test('describeWorker carries the mailer\'s send_email binding (Cloudflare Email Service), unrestricted only', () => {
+  const mailer = COMPONENTS.find((c) => c.name === 'arcanum-mailer');
+  const config = { name: 'arcanum-mailer', main: 'src/index.ts', compatibility_date: '2026-09-15', vars: {}, send_email: [{ name: 'EMAIL' }] };
+  assert.deepEqual(describeWorker(mailer, config).bindings, [{ type: 'send_email', name: 'EMAIL' }]);
+  assert.throws(() => describeWorker(mailer, { ...config, send_email: [{ name: 'EMAIL', allowed_sender_addresses: ['a@b.test'] }] }), /restrictions/);
+});
+
 test('describeWorker refuses config it does not understand', () => {
   assert.throws(() => describeWorker(backend, { ...readWranglerConfig(BACKEND_CONFIG), r2_buckets: [] }), /unsupported wrangler.jsonc key/);
   assert.throws(() => describeWorker(backend, { ...readWranglerConfig(BACKEND_CONFIG), triggers: { crons: ['*/5 * * * *'] } }), /cron/);
