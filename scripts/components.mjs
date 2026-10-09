@@ -68,7 +68,9 @@ export const COMPONENTS = [
       DEMO_MAX_LIVE: { kind: 'var', source: 'optional', note: 'demo instance only' },
       DEMO_INSTALL_URL: { kind: 'var', source: 'optional', note: 'demo instance only' },
       BOOTSTRAP_API_KEY: { kind: 'secret', source: 'optional', note: 'demo instance only (the bootstrapper)' },
-      DEFAULT_SMTP_HOST: { kind: 'secret', source: 'optional', note: 'mail is configured per org in the portal' },
+      // The installation's mail account (MAIL.md): one JSON for every org; set in the installer (Geavanceerd → E-mail, phase 3).
+      MAIL_CONFIG: { kind: 'secret', source: 'optional', note: 'the installation’s mail account (MAIL.md)' },
+      DEFAULT_SMTP_HOST: { kind: 'secret', source: 'optional', note: 'old fallback — replaced by MAIL_CONFIG (MAIL.md)' },
       DEFAULT_SMTP_PORT: { kind: 'secret', source: 'optional' },
       DEFAULT_SMTP_USER: { kind: 'secret', source: 'optional' },
       DEFAULT_SMTP_PASS: { kind: 'secret', source: 'optional' },
