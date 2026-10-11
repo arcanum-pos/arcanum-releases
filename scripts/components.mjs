@@ -65,6 +65,8 @@ export const COMPONENTS = [
       BOOTSTRAP_API_KEY: { kind: 'secret', source: 'optional', note: 'demo instance only (the bootstrapper)' },
       // The installation's mail account (MAIL.md): one JSON for every org; set in the installer (Geavanceerd → E-mail, phase 3).
       MAIL_CONFIG: { kind: 'secret', source: 'optional', note: 'the installation’s mail account (MAIL.md)' },
+      // The installation's SMS account (MESSAGING.md): Twilio; set in the installer (Geavanceerd → Sms).
+      MESSAGING_CONFIG: { kind: 'secret', source: 'optional', note: 'the installation’s SMS account (MESSAGING.md)' },
       DEVICEHUB_LOCAL_URL: { kind: 'var', source: 'dev' },
       MAILER_LOCAL_URL: { kind: 'var', source: 'dev' },
     },
