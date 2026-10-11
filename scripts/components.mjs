@@ -85,8 +85,9 @@ export const COMPONENTS = [
       DEFAULT_IDP_CLIENT_ID: { kind: 'secret', source: 'install', question: 'login.clientId' },
       DEFAULT_IDP_CLIENT_SECRET: { kind: 'secret', source: 'install', question: 'login.clientSecret' },
       DEFAULT_IDP_SCOPES: { kind: 'secret', source: 'optional', note: 'e.g. "openid profile email" for Google' },
-      DEFAULT_IDP_AUTH_CODE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
-      DEFAULT_IDP_AUTH_CODE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate browser-login client (Google)' },
+      // The primary client above is the browser's (and the QR sign-in's, without this one).
+      DEFAULT_IDP_DEVICE_CLIENT_ID: { kind: 'secret', source: 'optional', note: 'separate QR (device grant) client (Google)' },
+      DEFAULT_IDP_DEVICE_CLIENT_SECRET: { kind: 'secret', source: 'optional', note: 'separate QR (device grant) client (Google)' },
       SOURCE_URL: { kind: 'var', source: 'optional', note: 'AGPL "Broncode" link; unset = upstream repos' },
       ARCANUM_VERSION: { kind: 'var', source: 'optional', note: 'the installed release, shown in the console footer; set by the installer' },
       COOKIE_DOMAIN: { kind: 'var', source: 'optional' },
