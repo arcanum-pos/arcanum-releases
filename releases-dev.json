@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.50-dev.4",
+      "tag": "v0.1.50-dev.4",
+      "prerelease": true,
+      "released_at": "2026-10-12T18:33:46.644Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.50-dev.4/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.50-dev.4"
+    },
+    {
       "version": "0.1.50-dev.3",
       "tag": "v0.1.50-dev.3",
       "prerelease": true,
@@ -172,22 +181,13 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.42-dev.1/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.42-dev.1"
-    },
-    {
-      "version": "0.1.41-dev.1",
-      "tag": "v0.1.41-dev.1",
-      "prerelease": true,
-      "released_at": "2026-10-11T07:00:36.906Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.41-dev.1/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.41-dev.1"
     }
   ],
   "built_from": {
     "arcanum-mailer": "f5e2072a4f86f4f939eb9e93927bef09ef100c19",
     "arcanum-devicehub": "423a460f688f04ad74b03d931a29443e7a90e45c",
-    "arcanum-frontends": "b5c1105ecd6cf9a99b8d4c5c94c7d6ab487cfbac",
-    "arcanum-backend": "361c850a5523dc41188227905321a354c5c4ed94",
+    "arcanum-frontends": "9af7b9ee720c992855cd777ef8faf8f112c8c9d8",
+    "arcanum-backend": "456c93bf4b5ec4986829caf782db5db1c76625ce",
     "arcanum-bff": "74960374f52506f87246006cac8d432e7377d197",
     "arcanum-installer": "76f5937445c7f2b1c2caf1c0b16fc4512b3296c4"
   }
