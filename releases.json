@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.50",
+      "tag": "v0.1.50",
+      "prerelease": true,
+      "released_at": "2026-10-12T19:36:39.528Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.50/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.50"
+    },
+    {
       "version": "0.1.49",
       "tag": "v0.1.49",
       "prerelease": true,
