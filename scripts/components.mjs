@@ -49,6 +49,8 @@ export const COMPONENTS = [
       PUBLIC_BASE_URL: { kind: 'var', source: 'public_url' },
       // base64 of 32 bytes — never hex (see CLAUDE.md); must never change after install.
       ENCRYPTION_KEY: { kind: 'secret', source: 'generate', format: 'base64-32' },
+      // The installation's Web Push (VAPID) key: a P-256 private key, PKCS#8 in base64 (web-push.ts).
+      WEB_PUSH_KEY: { kind: 'secret', source: 'generate', format: 'p256-pkcs8' },
       INTERNAL_API_KEY: { kind: 'secret', source: 'shared', key: 'INTERNAL_API_KEY' },
       BFF_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'BFF_INTERNAL_KEY' },
       MAILER_INTERNAL_KEY: { kind: 'secret', source: 'shared', key: 'MAILER_INTERNAL_KEY' },
