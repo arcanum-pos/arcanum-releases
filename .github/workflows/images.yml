@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        worker: [mailer, devicehub, frontends, backend, bff]
+        worker: [mailer, devicehub, frontends, backend, bff, installer]
     steps:
       - uses: actions/checkout@v5
         with:
