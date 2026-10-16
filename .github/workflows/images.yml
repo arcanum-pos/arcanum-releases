@@ -63,3 +63,18 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ inputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
+
+  # The Helm chart that installs the installer (charts/tresjr-installer), with
+  # this version as its own and as the installer it starts with:
+  # oci://ghcr.io/arcanum-pos/charts/tresjr-installer. Only for a release's
+  # version (Helm wants semver): not for a test tag.
+  chart:
+    runs-on: ubuntu-latest
+    if: ${{ contains(inputs.version, '.') }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Package and push
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          helm package charts/tresjr-installer --version "${{ inputs.version }}" --app-version "${{ inputs.version }}" --destination out
+          helm push "out/tresjr-installer-${{ inputs.version }}.tgz" oci://ghcr.io/arcanum-pos/charts
