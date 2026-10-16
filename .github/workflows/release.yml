@@ -86,17 +86,6 @@ jobs:
             --notes-file dist/NOTES.md \
             ${{ inputs.prerelease && '--prerelease' || '--latest' }}
 
-      - name: Add it to releases.json (read by the installer)
-        run: |
-          node scripts/update-index.mjs --version "${{ inputs.version }}" --prerelease "${{ inputs.prerelease }}" --manifest dist/manifest.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add releases.json
-          git commit -m "releases.json: add ${{ inputs.version }}"
-          # A development build may have committed releases-dev.json meanwhile.
-          git pull --quiet --rebase
-          git push
-
   # Container images of the same commits, for self-hosting (SELF_HOSTING.md).
   images:
     needs: release
@@ -105,3 +94,28 @@ jobs:
       version: ${{ inputs.version }}
       ref: ${{ inputs.ref }}
       commits: ${{ needs.release.outputs.commits }}
+
+  # Only now in releases.json: an installer offers the release once
+  # everything it needs exists — on Kubernetes and Docker, the images too.
+  index:
+    needs: [release, images]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Add it to releases.json (read by the installer)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm ci
+          gh release download "v${{ inputs.version }}" --pattern manifest.json --dir dist
+          node scripts/update-index.mjs --version "${{ inputs.version }}" --prerelease "${{ inputs.prerelease }}" --manifest dist/manifest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git commit -m "releases.json: add ${{ inputs.version }}"
+          # A development build may have committed releases-dev.json meanwhile.
+          git pull --quiet --rebase
+          git push

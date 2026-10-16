@@ -19,6 +19,8 @@ on:
 
 permissions:
   contents: write
+  # The self-hosting images (images.yml).
+  packages: write
 
 # Its own group: in a shared one, a waiting development build would cancel
 # a waiting release (GitHub keeps only the newest pending run per group).
@@ -32,6 +34,10 @@ env:
 jobs:
   dev-build:
     runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.changes.outputs.build }}
+      version: ${{ steps.version.outputs.version }}
+      commits: ${{ steps.changes.outputs.commits }}
     steps:
       # main as it is now, not as it was when this run was triggered: a run
       # that waited for another (the concurrency group) must see the
@@ -52,6 +58,7 @@ jobs:
             first=0
           done
           echo '}' >> built-from.json
+          echo "commits=$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('built-from.json','utf8'))))")" >> "$GITHUB_OUTPUT"
           last=$( [ -f releases-dev.json ] && node -e "console.log(JSON.stringify(require('./releases-dev.json').built_from ?? null))" || echo null )
           now=$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('built-from.json','utf8'))))")
           if [ "$last" = "$now" ] && [ "${{ inputs.force }}" != "true" ]; then echo "build=false" >> "$GITHUB_OUTPUT"; echo "Nothing new since the last development build."; else echo "build=true" >> "$GITHUB_OUTPUT"; fi
@@ -109,17 +116,44 @@ jobs:
             --title "Arcanum ${{ steps.version.outputs.version }} (development build)" \
             --notes-file dist/NOTES.md --prerelease --latest=false
 
+  # Container images of the same commits, for self-hosted installations
+  # on the development channel (SELF_HOSTING.md).
+  images:
+    needs: dev-build
+    if: needs.dev-build.outputs.build == 'true'
+    uses: ./.github/workflows/images.yml
+    with:
+      version: ${{ needs.dev-build.outputs.version }}
+      commits: ${{ needs.dev-build.outputs.commits }}
+
+  # Only now in releases-dev.json: an installer offers the build once its
+  # images exist too.
+  index:
+    needs: [dev-build, images]
+    if: needs.dev-build.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
       - name: Add it to releases-dev.json; drop the oldest
-        if: steps.changes.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          COMMITS: ${{ needs.dev-build.outputs.commits }}
+          VERSION: ${{ needs.dev-build.outputs.version }}
         run: |
-          git pull --quiet --rebase
+          npm ci
+          printf '%s' "$COMMITS" > built-from.json
+          gh release download "v$VERSION" --pattern manifest.json --dir dist
           node scripts/update-index.mjs --index releases-dev.json --keep 20 --built-from built-from.json --removed removed.txt \
-            --version "${{ steps.version.outputs.version }}" --prerelease true --manifest dist/manifest.json
+            --version "$VERSION" --prerelease true --manifest dist/manifest.json
           while read -r old; do [ -n "$old" ] && gh release delete "v$old" --yes --cleanup-tag || true; done < removed.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add releases-dev.json
-          git commit -m "releases-dev.json: add ${{ steps.version.outputs.version }}"
+          git commit -m "releases-dev.json: add $VERSION"
+          git pull --quiet --rebase
           git push
