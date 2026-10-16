@@ -1,0 +1,13 @@
+apiVersion: v2
+name: tresjr-installer
+description: Installs the tresjr installer in your cluster — it installs and updates the rest itself (SELF_HOSTING.md).
+type: application
+# The chart's own version, and the installer release it starts with. After
+# installing, updates go through the installer (one click); helm upgrade
+# only changes the chart's own settings.
+version: 0.1.0
+appVersion: "0.1.63"
+home: https://arcanum.kaboutersoft.be
+sources:
+  - https://github.com/arcanum-pos/arcanum-releases
+  - https://github.com/arcanum-pos/arcanum-installer

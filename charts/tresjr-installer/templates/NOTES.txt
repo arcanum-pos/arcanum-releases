@@ -1,0 +1,16 @@
+The tresjr installer is starting in namespace {{ .Release.Namespace }}.
+
+1. Open it (until tresjr's own address is up, through a port-forward):
+
+     kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "tresjr-installer.name" . }} 8080:8080
+
+   then the link arcanum.kaboutersoft.be gave you, with localhost:8080 as
+   its address (http://localhost:8080/handoff?code=…).
+
+2. Give the public address you route to tresjr (your Ingress, a Cloudflare
+   Tunnel, …) — point it at the Service tresjr-bff, port 8080, WebSockets
+   included — choose a release, and install.
+
+Updates: one click in the installer (it updates itself first). Keep the
+Secret {{ include "tresjr-installer.name" . }}-key safe: it unlocks the
+installer's state, ENCRYPTION_KEY included.

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tresjr-installer.name" . }}
+  labels: {{- include "tresjr-installer.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: installer
+      app.kubernetes.io/instance: tresjr
+  template:
+    metadata:
+      labels: {{- include "tresjr-installer.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "tresjr-installer.name" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: installer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: INSTALLER_RELEASE
+              value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+            - name: INSTALLER_DEPLOYMENT
+              value: {{ include "tresjr-installer.name" . }}
+            - name: BOOTSTRAP_SECRET
+              value: {{ include "tresjr-installer.name" . }}-bootstrap
+            - name: STATE_SECRET
+              value: {{ include "tresjr-installer.name" . }}-state
+            - name: RELEASES_INDEX_URL
+              value: {{ .Values.releasesIndexUrl | quote }}
+            {{- with .Values.imagePrefix }}
+            - name: IMAGE_PREFIX
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.imageTag }}
+            - name: IMAGE_TAG
+              value: {{ . | quote }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "tresjr-installer.name" . }}-key
+            - secretRef:
+                name: {{ include "tresjr-installer.name" . }}-bootstrap
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tresjr-installer.name" . }}
+  labels: {{- include "tresjr-installer.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: installer
+    app.kubernetes.io/instance: tresjr
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

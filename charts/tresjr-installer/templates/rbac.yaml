@@ -1,0 +1,37 @@
+# The installer's rights: in this namespace only — what it creates and
+# updates for tresjr (Secrets, volumes, Deployments, Services), and reading
+# pods to say why one doesn't come up. The app pods get no rights at all.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "tresjr-installer.name" . }}
+  labels: {{- include "tresjr-installer.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "tresjr-installer.name" . }}
+  labels: {{- include "tresjr-installer.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets, services, persistentvolumeclaims]
+    verbs: [get, list, create, update, patch, delete]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "tresjr-installer.name" . }}
+  labels: {{- include "tresjr-installer.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "tresjr-installer.name" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "tresjr-installer.name" . }}

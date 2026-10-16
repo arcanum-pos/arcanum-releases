@@ -1,0 +1,26 @@
+# The installer's image. Its tag starts as the chart's appVersion; the
+# installer updates itself afterwards (and owns the image from then on).
+image:
+  repository: ghcr.io/arcanum-pos/tresjr-installer
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# The handoff from arcanum.kaboutersoft.be ("Eigen installatie" →
+# Kubernetes): the JSON it gives you. Imported once, then emptied.
+bootstrapConfig: ""
+
+# Where the release index comes from (stable releases; the bootstrapper
+# decides about development builds).
+releasesIndexUrl: https://raw.githubusercontent.com/arcanum-pos/arcanum-releases/main/releases.json
+
+# Where the other images come from, and a tag to use instead of each
+# release's version — only for a test cluster with images built locally.
+imagePrefix: ""
+imageTag: ""
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
