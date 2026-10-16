@@ -22,6 +22,8 @@ on:
 
 permissions:
   contents: write
+  # The self-hosting images (images.yml).
+  packages: write
 
 concurrency:
   group: release
@@ -30,6 +32,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      commits: ${{ steps.commits.outputs.commits }}
     steps:
       - uses: actions/checkout@v5
 
@@ -68,6 +72,11 @@ jobs:
       - name: Build the release
         run: node scripts/build-release.mjs --version "${{ inputs.version }}" --work work --out dist
 
+      - name: The commits it was built from (for the images)
+        id: commits
+        run: |
+          echo "commits=$(for repo in work/arcanum-*; do printf '"%s":"%s",' "$(basename "$repo")" "$(git -C "$repo" rev-parse HEAD)"; done | sed 's/,$//; s/^/{/; s/$/}/')" >> "$GITHUB_OUTPUT"
+
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
@@ -87,3 +96,12 @@ jobs:
           # A development build may have committed releases-dev.json meanwhile.
           git pull --quiet --rebase
           git push
+
+  # Container images of the same commits, for self-hosting (SELF_HOSTING.md).
+  images:
+    needs: release
+    uses: ./.github/workflows/images.yml
+    with:
+      version: ${{ inputs.version }}
+      ref: ${{ inputs.ref }}
+      commits: ${{ needs.release.outputs.commits }}
