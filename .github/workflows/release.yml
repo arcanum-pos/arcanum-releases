@@ -47,7 +47,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Check out the components and the installer (public repos)
         run: |
@@ -104,7 +104,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
       - name: Add it to releases.json (read by the installer)
         env:
           GH_TOKEN: ${{ github.token }}
