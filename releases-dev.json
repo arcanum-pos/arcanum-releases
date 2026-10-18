@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.70-dev.1",
+      "tag": "v0.1.70-dev.1",
+      "prerelease": true,
+      "released_at": "2026-10-18T20:52:05.840Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.70-dev.1/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.70-dev.1"
+    },
+    {
       "version": "0.1.69-dev.2",
       "tag": "v0.1.69-dev.2",
       "prerelease": true,
@@ -172,23 +181,14 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.64-dev.3/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.64-dev.3"
-    },
-    {
-      "version": "0.1.64-dev.2",
-      "tag": "v0.1.64-dev.2",
-      "prerelease": true,
-      "released_at": "2026-10-16T10:00:17.467Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.64-dev.2/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.64-dev.2"
     }
   ],
   "built_from": {
-    "arcanum-mailer": "aea0880fd153a1e2341d9ad6f15c7af0b1c2aa82",
-    "arcanum-devicehub": "3865aa7d69f684ade9c02251c9dcccdd4eb74345",
-    "arcanum-frontends": "ca3c5d99846374aa38cba3ca0f4c8cca8620a0b6",
-    "arcanum-backend": "15c103e2680ea782dc18939311d8f54dd3dede27",
-    "arcanum-bff": "fdd3fe5c54ca0b1227ce776d2df6e23c972cdd1c",
-    "arcanum-installer": "402ac9a02797820787ebf630589cfab44f77b458"
+    "arcanum-mailer": "7a39c9ce1109181ada23834d08c48a416c59fb32",
+    "arcanum-devicehub": "140aa75b5a144ab415bd4aabac316006f14a72bf",
+    "arcanum-frontends": "f20a64b1f9fb5b4dc89fa98adccc95edbbee44be",
+    "arcanum-backend": "d35e1422a25423c2ee2619c78b6a4f6135286e27",
+    "arcanum-bff": "c4505fa3930b0f6b5c742b85d6baaaa3a8617d57",
+    "arcanum-installer": "bec8ae417774214e8212fb2f8a521477437da81c"
   }
 }
