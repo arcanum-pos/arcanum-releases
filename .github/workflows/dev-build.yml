@@ -22,6 +22,15 @@ on:
 permissions:
   contents: read
 
+# Its own group: in a shared one, a waiting development build would cancel
+# a waiting release (GitHub keeps only the newest pending run per group).
+concurrency:
+  group: dev-build
+  cancel-in-progress: false
+
+env:
+  REPOS: arcanum-mailer arcanum-devicehub arcanum-frontends arcanum-backend arcanum-bff arcanum-installer
+
 jobs:
   dev-build:
     permissions:
