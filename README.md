@@ -1,5 +1,7 @@
 # arcanum-releases
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/arcanum-pos/arcanum-releases/badge)](https://scorecard.dev/viewer/?uri=github.com/arcanum-pos/arcanum-releases)
+
 Built release bundles of [Arcanum](https://github.com/arcanum-pos), for
 self-hosted installations deployed by
 [arcanum-installer](https://github.com/arcanum-pos/arcanum-installer). No
