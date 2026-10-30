@@ -45,7 +45,7 @@ jobs:
       matrix:
         worker: [mailer, devicehub, frontends, backend, bff, installer]
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: arcanum-pos/arcanum-${{ matrix.worker }}
           ref: ${{ fromJSON(inputs.commits || '{}')[format('arcanum-{0}', matrix.worker)] || inputs.ref }}
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(inputs.version, '.') && !contains(inputs.version, '-dev') }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Package and push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
