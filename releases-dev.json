@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.89-dev.3",
+      "tag": "v0.1.89-dev.3",
+      "prerelease": true,
+      "released_at": "2026-10-30T11:22:34.008Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.89-dev.3/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.89-dev.3"
+    },
+    {
       "version": "0.1.89-dev.2",
       "tag": "v0.1.89-dev.2",
       "prerelease": true,
@@ -172,23 +181,14 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.85-dev.2/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.85-dev.2"
-    },
-    {
-      "version": "0.1.85-dev.1",
-      "tag": "v0.1.85-dev.1",
-      "prerelease": true,
-      "released_at": "2026-10-26T18:16:27.839Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.85-dev.1/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.85-dev.1"
     }
   ],
   "built_from": {
-    "arcanum-mailer": "5b2ead09c8e137b69414a6735e9884c352776ef0",
-    "arcanum-devicehub": "72ffe06145ee356e19c9221136e2496eec57ad9b",
-    "arcanum-frontends": "7f0452e66fa7c0c0c5639063a43aaffafa37d465",
-    "arcanum-backend": "19837ac51e29a43e3c0834c9d5d824567b89316c",
-    "arcanum-bff": "73d4e7c8f8ba8dbef86d7d60d37c87969d329252",
-    "arcanum-installer": "92f94f4178265dce9d9856c3deeac8aaf6c8399a"
+    "arcanum-mailer": "df6db518893d9e209fb483d85f6d91755e82a2e3",
+    "arcanum-devicehub": "2a52fb135b5d6e2077c9731f02df7b62ac3c906a",
+    "arcanum-frontends": "74ffa351e026e17df58b844de61c3004d95665dd",
+    "arcanum-backend": "0e7d25b3440d5e3ecd14574430bd50cfbc69b3c7",
+    "arcanum-bff": "82fe5bf6604cc7622f80cccb9c9227c0d68ad448",
+    "arcanum-installer": "7cb3a831da917687fb833c95370fcc1c604c2c71"
   }
 }
