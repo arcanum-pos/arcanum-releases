@@ -80,9 +80,15 @@ jobs:
       # Anyone can check a downloaded bundle came from this workflow:
       # gh attestation verify <file> -R arcanum-pos/arcanum-releases
       - name: Attest the bundles
+        id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: 'dist/*'
+
+      # Also as a release asset, so OpenSSF Scorecard (Signed-Releases) finds
+      # it; copied after attesting, so it isn't one of the subjects itself.
+      - name: Attach the provenance
+        run: cp "${{ steps.attest.outputs.bundle-path }}" dist/provenance.intoto.jsonl
 
       - name: Publish
         env:
