@@ -24,6 +24,10 @@ permissions:
   contents: write
   # The self-hosting images (images.yml).
   packages: write
+  # Build provenance (actions/attest-build-provenance): signed proof of the
+  # workflow and commits a bundle or image was built from.
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release
@@ -76,6 +80,13 @@ jobs:
         id: commits
         run: |
           echo "commits=$(for repo in work/arcanum-*; do printf '"%s":"%s",' "$(basename "$repo")" "$(git -C "$repo" rev-parse HEAD)"; done | sed 's/,$//; s/^/{/; s/$/}/')" >> "$GITHUB_OUTPUT"
+
+      # Anyone can check a downloaded bundle came from this workflow:
+      # gh attestation verify <file> -R arcanum-pos/arcanum-releases
+      - name: Attest the bundles
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'dist/*'
 
       - name: Publish
         env:

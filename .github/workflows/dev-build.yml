@@ -21,6 +21,10 @@ permissions:
   contents: write
   # The self-hosting images (images.yml).
   packages: write
+  # Build provenance (actions/attest-build-provenance): signed proof of the
+  # workflow and commits a bundle or image was built from.
+  id-token: write
+  attestations: write
 
 # Its own group: in a shared one, a waiting development build would cancel
 # a waiting release (GitHub keeps only the newest pending run per group).
@@ -106,6 +110,14 @@ jobs:
       - name: Build
         if: steps.changes.outputs.build == 'true'
         run: node scripts/build-release.mjs --version "${{ steps.version.outputs.version }}" --work work --out dist
+
+      # Anyone can check a downloaded bundle came from this workflow:
+      # gh attestation verify <file> -R arcanum-pos/arcanum-releases
+      - name: Attest the bundles
+        if: steps.changes.outputs.build == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'dist/*'
 
       - name: Publish
         if: steps.changes.outputs.build == 'true'

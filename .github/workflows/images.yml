@@ -30,6 +30,10 @@ on:
 permissions:
   contents: read
   packages: write
+  # Build provenance, pushed to the registry next to the image:
+  # gh attestation verify oci://ghcr.io/arcanum-pos/tresjr-<worker>:<version> -R arcanum-pos/arcanum-releases
+  id-token: write
+  attestations: write
 
 jobs:
   image:
@@ -54,6 +58,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -63,6 +68,13 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ inputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Attest the image
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/arcanum-pos/tresjr-${{ matrix.worker }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
   # The Helm chart that installs the installer (charts/tresjr-installer), with
   # this version as its own and as the installer it starts with:
