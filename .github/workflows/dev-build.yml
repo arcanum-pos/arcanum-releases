@@ -17,26 +17,17 @@ on:
         type: boolean
         default: false
 
+# Read-only by default; each job asks for what it needs (OpenSSF Scorecard:
+# token permissions).
 permissions:
-  contents: write
-  # The self-hosting images (images.yml).
-  packages: write
-  # Build provenance (actions/attest-build-provenance): signed proof of the
-  # workflow and commits a bundle or image was built from.
-  id-token: write
-  attestations: write
-
-# Its own group: in a shared one, a waiting development build would cancel
-# a waiting release (GitHub keeps only the newest pending run per group).
-concurrency:
-  group: dev-build
-  cancel-in-progress: false
-
-env:
-  REPOS: arcanum-mailer arcanum-devicehub arcanum-frontends arcanum-backend arcanum-bff arcanum-installer
+  contents: read
 
 jobs:
   dev-build:
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.changes.outputs.build }}
@@ -46,7 +37,7 @@ jobs:
       # main as it is now, not as it was when this run was triggered: a run
       # that waited for another (the concurrency group) must see the
       # releases-dev.json that one wrote, or it picks the same version.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: main
 
@@ -67,7 +58,7 @@ jobs:
           now=$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('built-from.json','utf8'))))")
           if [ "$last" = "$now" ] && [ "${{ inputs.force }}" != "true" ]; then echo "build=false" >> "$GITHUB_OUTPUT"; echo "Nothing new since the last development build."; else echo "build=true" >> "$GITHUB_OUTPUT"; fi
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         if: steps.changes.outputs.build == 'true'
         with:
           node-version: 24
@@ -115,7 +106,7 @@ jobs:
       # gh attestation verify <file> -R arcanum-pos/arcanum-releases
       - name: Attest the bundles
         if: steps.changes.outputs.build == 'true'
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: 'dist/*'
 
@@ -131,6 +122,11 @@ jobs:
   # Container images of the same commits, for self-hosted installations
   # on the development channel (SELF_HOSTING.md).
   images:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     needs: dev-build
     if: needs.dev-build.outputs.build == 'true'
     uses: ./.github/workflows/images.yml
@@ -141,14 +137,16 @@ jobs:
   # Only now in releases-dev.json: an installer offers the build once its
   # images exist too.
   index:
+    permissions:
+      contents: write
     needs: [dev-build, images]
     if: needs.dev-build.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: main
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
       - name: Add it to releases-dev.json; drop the oldest

@@ -1,0 +1,17 @@
+# Weekly updates for the build scripts' packages and the pinned GitHub
+# Actions (by commit, see the workflows). Security fixes come as soon as
+# they're published.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # Major versions are upgraded by hand (they change APIs).
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
