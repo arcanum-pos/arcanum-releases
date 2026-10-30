@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.89-dev.4",
+      "tag": "v0.1.89-dev.4",
+      "prerelease": true,
+      "released_at": "2026-10-30T11:53:30.781Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.89-dev.4/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.89-dev.4"
+    },
+    {
       "version": "0.1.89-dev.3",
       "tag": "v0.1.89-dev.3",
       "prerelease": true,
@@ -172,23 +181,14 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.86-dev.1/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.86-dev.1"
-    },
-    {
-      "version": "0.1.85-dev.2",
-      "tag": "v0.1.85-dev.2",
-      "prerelease": true,
-      "released_at": "2026-10-26T19:24:05.151Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.85-dev.2/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.85-dev.2"
     }
   ],
   "built_from": {
-    "arcanum-mailer": "df6db518893d9e209fb483d85f6d91755e82a2e3",
-    "arcanum-devicehub": "2a52fb135b5d6e2077c9731f02df7b62ac3c906a",
-    "arcanum-frontends": "74ffa351e026e17df58b844de61c3004d95665dd",
-    "arcanum-backend": "0e7d25b3440d5e3ecd14574430bd50cfbc69b3c7",
-    "arcanum-bff": "82fe5bf6604cc7622f80cccb9c9227c0d68ad448",
-    "arcanum-installer": "7cb3a831da917687fb833c95370fcc1c604c2c71"
+    "arcanum-mailer": "1cc70517325a7949023c848e9e2d150ac58f69f6",
+    "arcanum-devicehub": "9bdbf7be71a5c1b7f8c798eb8f6f8f69c1b37201",
+    "arcanum-frontends": "f165acf96adc926da1287c9e5b4b305143e2e946",
+    "arcanum-backend": "98a591904314333ae12e9ecafe5f9c5580db76a7",
+    "arcanum-bff": "3b6640c1a45a6dbf3347bd4d00970ef8011d8ab2",
+    "arcanum-installer": "a5b48a9d92b97c54518a59fb592daf9cba026846"
   }
 }
