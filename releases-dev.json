@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.92-dev.2",
+      "tag": "v0.1.92-dev.2",
+      "prerelease": true,
+      "released_at": "2026-11-06T15:41:18.854Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.92-dev.2/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.92-dev.2"
+    },
+    {
       "version": "0.1.92-dev.1",
       "tag": "v0.1.92-dev.1",
       "prerelease": true,
@@ -172,23 +181,14 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.87-dev.2/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.87-dev.2"
-    },
-    {
-      "version": "0.1.87-dev.1",
-      "tag": "v0.1.87-dev.1",
-      "prerelease": true,
-      "released_at": "2026-10-27T20:33:05.769Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.87-dev.1/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.87-dev.1"
     }
   ],
   "built_from": {
-    "arcanum-mailer": "1cc70517325a7949023c848e9e2d150ac58f69f6",
-    "arcanum-devicehub": "50b28ab1f45b5c7d4ce444cb93dea82a8c788fd8",
-    "arcanum-frontends": "883c8f69e56443fc987e3332cd3ec4d14349b75f",
-    "arcanum-backend": "d8f201f7b0eb52125a5a5a6dc9d6abd7a13f4183",
-    "arcanum-bff": "3b6640c1a45a6dbf3347bd4d00970ef8011d8ab2",
-    "arcanum-installer": "a5b48a9d92b97c54518a59fb592daf9cba026846"
+    "arcanum-mailer": "1257930621136244479bfd7ad52815069a2a3933",
+    "arcanum-devicehub": "a40d73ab8c4b9707527247ebfd1b6d857ea66609",
+    "arcanum-frontends": "307db4043521926265a041dccf42b19a0801cc50",
+    "arcanum-backend": "dbc80f3ba7a82714b259d477b8f5e5f316190467",
+    "arcanum-bff": "e7ba3faeff748000c72bede9e374d1a0c7c8e4bb",
+    "arcanum-installer": "c0800ee3615521b384a29de532eef6c1feff528b"
   }
 }
