@@ -3,6 +3,15 @@
   "latest": null,
   "releases": [
     {
+      "version": "0.1.96-dev.5",
+      "tag": "v0.1.96-dev.5",
+      "prerelease": true,
+      "released_at": "2026-11-16T21:09:43.456Z",
+      "format_version": 1,
+      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.96-dev.5/manifest.json",
+      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.96-dev.5"
+    },
+    {
       "version": "0.1.96-dev.4",
       "tag": "v0.1.96-dev.4",
       "prerelease": true,
@@ -172,23 +181,14 @@
       "format_version": 1,
       "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.89-dev.2/manifest.json",
       "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.89-dev.2"
-    },
-    {
-      "version": "0.1.89-dev.1",
-      "tag": "v0.1.89-dev.1",
-      "prerelease": true,
-      "released_at": "2026-10-29T20:38:13.251Z",
-      "format_version": 1,
-      "manifest_url": "https://github.com/arcanum-pos/arcanum-releases/releases/download/v0.1.89-dev.1/manifest.json",
-      "notes_url": "https://github.com/arcanum-pos/arcanum-releases/releases/tag/v0.1.89-dev.1"
     }
   ],
   "built_from": {
-    "arcanum-mailer": "1257930621136244479bfd7ad52815069a2a3933",
-    "arcanum-devicehub": "077858e5d804436d3e409428acddf61857780550",
-    "arcanum-frontends": "ff331374f981903d24f0509789efa7c7ceb75cc6",
-    "arcanum-backend": "a1954453f3c9e7c50673c68a8dd5d65f193075ef",
-    "arcanum-bff": "a4f64ad21edba1dda92f4c9f1a96ed62ef763a31",
-    "arcanum-installer": "f1a4daa885572e86e922a5f5de0463663bd8aa39"
+    "arcanum-mailer": "0b78ce4448f2a25a2c0f473d1c1c4d89d2fb271f",
+    "arcanum-devicehub": "5a2f24f089b58f76b3fd56d196f384707dded916",
+    "arcanum-frontends": "82ff3caf0e819fd5cd7b890af30d7ad7643518a8",
+    "arcanum-backend": "8a2f7a66f7248f4a877218b4c87419c2d28307e5",
+    "arcanum-bff": "37e4567c9c1e2e987904735f9d84210a98bf8fd1",
+    "arcanum-installer": "ab9a7aeaa6132029f57655bfc5972798323dcda5"
   }
 }
